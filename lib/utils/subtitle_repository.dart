@@ -1,3 +1,5 @@
+library subtitle.util;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,15 +7,22 @@ import 'package:http/http.dart';
 
 import '../core/exceptions.dart';
 
+/// The base class of any subtitle repository. Deals with the platform directly
+/// to get or download the required data and submit it to the provider. You can
+/// create your custom by inherited this base class.
 abstract class ISubtitleRepository {
   const ISubtitleRepository();
 
+  /// Help to fetch subtitle file data from internet.
   Future<String> fetchFromNetwork(Uri url);
+
+  /// Help to fetch subtitle file data from a specific file.
   Future<String> fetchFromFile(File file);
 }
 
-///! The user have not to use this class.
 /// Created to load the subtitles as a string from with value need to use futrue.
+/// Deals with the platform directly to get or download the required data and submit 
+/// it to the provider.
 class SubtitleRepository extends ISubtitleRepository {
   const SubtitleRepository._();
 

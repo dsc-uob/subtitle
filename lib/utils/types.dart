@@ -1,9 +1,14 @@
-library iqplayer.util;
+library subtitle.util;
 
-import 'dart:async';
+import '../subtitle.dart';
 
+/// Stored the subtitle file data and its format type. Each subtitle file present in
+/// one object or [SubtitleObject]
 class SubtitleObject {
-  final FutureOr<String> data;
+  /// Contain the file data coming from internet, file or any place you can provide.
+  final String data;
+
+  /// The current subtitle format type of current file.
   final SubtitleType type;
 
   const SubtitleObject({
@@ -38,12 +43,12 @@ class SubtitleObject {
 /// - Supported formats:
 ///   - ### VTT
 ///   - ### SRT
+///   - ### TTML
+///   - ### DFXP
 ///
 /// - Unsupported formats:
 ///   - ### SBV
 ///   - ### SSA
-///   - ### TTML
-///   - ### DFXP
 ///
 enum SubtitleType {
   /// ## SubRip
@@ -84,7 +89,6 @@ enum SubtitleType {
   /// that any other derived standard can incorporate, in part or in whole. Derived standards are
   /// called **profiles**. So, profiles are essentially groups of capabilities and requirements from
   /// the underlying TTML standard.
-  @Deprecated('It\'s old version of subtitle, replaced with TTML')
   dfxp,
 
   /// ## YouTube format `.SBV`
@@ -110,4 +114,13 @@ enum SubtitleType {
   /// rendering rules. The WebVTT specification is still in draft stage but the basic features are
   /// already supported by all major browsers.
   vtt,
+
+  /// ## Custom (User defin type)
+  ///
+  /// This is type used when user provide a custom subtitle format or not supported in this package.
+  custom,
 }
+
+/// Used in [CustomSubtitleParser] to comstmize parsing of subtitles.
+typedef OnParsingSubtitle = List<Subtitle> Function(
+    Iterable<RegExpMatch> matchers);

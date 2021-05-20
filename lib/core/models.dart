@@ -2,6 +2,10 @@ library subtitle.core;
 
 /// This model class store the subtitle data.
 class Subtitle {
+  /// Current index of this subtitle in its file.
+  /// The **-1** value mean that is no index for this subtitle in its file.
+  final int index;
+
   /// Store the current text for periode that started with [start] and
   /// end with [end].
   final String data;
@@ -16,6 +20,7 @@ class Subtitle {
     required this.start,
     required this.end,
     required this.data,
+    required this.index,
   });
 
   bool operator >(Subtitle other) => start > other.start;
@@ -46,5 +51,5 @@ class Subtitle {
   @override
   int get hashCode => props.hashCode;
 
-  List<Object> get props => [start, end, data];
+  List<Object> get props => [start, end, data, index];
 }

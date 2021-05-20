@@ -1,14 +1,16 @@
-library iqplayer.util;
+library subtitle.util;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' show extension;
-import 'package:subtitle/core/exceptions.dart';
-import 'package:subtitle/utils/public_type.dart';
 
+import '../core/exceptions.dart';
+import '../utils/types.dart';
 import 'subtitle_repository.dart';
 
-/// Base class of subtitle provider.
+/// Base class of subtitle providers. It was created to
+/// simplify fetching subtitle file data from multiple sources.
 abstract class SubtitleProvider {
   /// Store the supported subtitle file format extensions.
   static const List<String> supported_extensions = [
@@ -95,7 +97,7 @@ abstract class SubtitleProvider {
       );
 
   /// Abstract method return an instance of [SubtitleObject].
-  SubtitleObject getSubtitle();
+  FutureOr<SubtitleObject> getSubtitle();
 
   /// Return the current [SubtitleType] depended on file extension.
   SubtitleType getSubtitleType(String ext) {
@@ -141,10 +143,10 @@ class NetworkSubtitle extends SubtitleProvider {
   const NetworkSubtitle(this.url);
 
   @override
-  SubtitleObject getSubtitle() {
+  FutureOr<SubtitleObject> getSubtitle() async {
     // Preparing subtitle file data.
     final _repository = SubtitleRepository.inctance;
-    final data = _repository.fetchFromNetwork(url);
+    final data = await _repository.fetchFromNetwork(url);
 
     // Find the current format type of subtitle.
     final ext = extension(url.path);
@@ -174,10 +176,10 @@ class FileSubtitle extends SubtitleProvider {
   const FileSubtitle(this.file);
 
   @override
-  SubtitleObject getSubtitle() {
+  FutureOr<SubtitleObject> getSubtitle() async {
     // Preparing subtitle file data.
     final _repository = SubtitleRepository.inctance;
-    final data = _repository.fetchFromFile(file);
+    final data = await _repository.fetchFromFile(file);
 
     // Find the current format type of subtitle.
     final ext = extension(file.path);
@@ -226,5 +228,6 @@ class StringSubtitle extends SubtitleProvider {
   });
 
   @override
-  SubtitleObject getSubtitle() => SubtitleObject(data: data, type: type);
+  FutureOr<SubtitleObject> getSubtitle() =>
+      SubtitleObject(data: data, type: type);
 }
