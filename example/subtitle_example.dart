@@ -2,7 +2,7 @@ import 'package:subtitle/core/models.dart';
 import 'package:subtitle/utils/subtitle_parser.dart';
 import 'package:subtitle/utils/types.dart';
 
-/// WebVTT and SRT parsing
+/// WebVTT parsing
 SubtitleObject vttObject = SubtitleObject(
   type: SubtitleType.vtt,
   data: '''
@@ -18,7 +18,7 @@ WEBVTT
 );
 SubtitleParser vttParser = SubtitleParser(vttObject);
 
-/// WebVTT and SRT parsing
+/// SRT parsing
 SubtitleObject srtObject = SubtitleObject(
   type: SubtitleType.srt,
   data: '''

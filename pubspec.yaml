@@ -1,6 +1,6 @@
 name: subtitle
 description: Library for dealing with subtitle/caption formats.
-version: 0.1.0
+version: 0.1.0-beta.1
 homepage: https://github.com/dsc-uob/subtitle
 
 environment:

@@ -21,7 +21,7 @@ abstract class ISubtitleRepository {
 }
 
 /// Created to load the subtitles as a string from with value need to use futrue.
-/// Deals with the platform directly to get or download the required data and submit 
+/// Deals with the platform directly to get or download the required data and submit
 /// it to the provider.
 class SubtitleRepository extends ISubtitleRepository {
   const SubtitleRepository._();
