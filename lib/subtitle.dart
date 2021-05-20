@@ -1,8 +1,10 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
 library subtitle;
 
-export 'src/subtitle_base.dart';
+export 'core/models.dart';
+export 'core/exceptions.dart';
 
-// TODO: Export any libraries intended for clients of this package.
+export 'utils/types.dart';
+export 'utils/regexes.dart';
+export 'utils/subtitle_parser.dart';
+export 'utils/subtitle_provider.dart';
+export 'utils/subtitle_repository.dart';
