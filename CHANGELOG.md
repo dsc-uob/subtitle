@@ -1,3 +1,9 @@
+## 0.1.0-beta.2
+- Update regex of `VttRegex` and `SrtRegex`.
+- Re-architect the files of project.
+- Fix `dart:io` bug to support dart js and flutter web by using `universal_io` package.
+- Remove non-required dependency `http` package.
+
 ## 0.1.0-beta.1
 
 - **SubtitleProvider:** Simplifies fetching subtitle file data from multiple sources.

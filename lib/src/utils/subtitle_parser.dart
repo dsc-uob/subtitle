@@ -1,5 +1,3 @@
-library subtitle.util;
-
 import '../core/exceptions.dart';
 import '../core/models.dart';
 import 'regexes.dart';
@@ -72,32 +70,8 @@ class SubtitleParser extends ISubtitleParser {
 
   /// Parsing WebVTT or SRT format to subtitle and store it in [_subtitles] field.
   void _getSubtitleFor_VTT_SRT_Format(Iterable<RegExpMatch> matches) {
-    for (var matcher in matches) {
-      var start = Duration(
-        seconds: int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(4) ?? '0'),
-        milliseconds: int.parse(matcher.group(5) ?? '0'),
-      );
-      var end = Duration(
-        seconds: int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(8) ?? '0'),
-        milliseconds: int.parse(matcher.group(9) ?? '0'),
-      );
-
-      _subtitles.add(Subtitle(
-        start: start,
-        end: end,
-        data: matcher.group(10)?.trim() ?? '',
-        index: int.parse(matcher.group(1) ?? '-1'),
-      ));
-    }
-  }
-
-  /// Parsing TTML or DFXP format to subtitle and store it in [_subtitles] field.
-  void _getSubtitleFor_TTML_DFXP_Format(Iterable<RegExpMatch> matches) {
-    for (var matcher in matches) {
+    for (var i = 0; i < matches.length; i++) {
+      var matcher = matches.elementAt(i);
       var start = Duration(
         seconds: int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0') +
             int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0') +
@@ -115,11 +89,41 @@ class SubtitleParser extends ISubtitleParser {
         start: start,
         end: end,
         data: matcher.group(11)?.trim() ?? '',
-        index: -1,
+        index: int.parse(matcher.group(1) ?? '${i + 1}'),
+      ));
+    }
+  }
+
+  /// Parsing TTML or DFXP format to subtitle and store it in [_subtitles] field.
+  void _getSubtitleFor_TTML_DFXP_Format(Iterable<RegExpMatch> matches) {
+    for (var i = 0; i < matches.length; i++) {
+      var matcher = matches.elementAt(i);
+      var start = Duration(
+        seconds: int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0') +
+            int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0') +
+            int.parse(matcher.group(4) ?? '0'),
+        milliseconds: int.parse(matcher.group(5) ?? '0'),
+      );
+      var end = Duration(
+        seconds: int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0') +
+            int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0') +
+            int.parse(matcher.group(8) ?? '0'),
+        milliseconds: int.parse(matcher.group(9) ?? '0'),
+      );
+
+      _subtitles.add(Subtitle(
+        start: start,
+        end: end,
+        data: matcher.group(11)?.trim() ?? '',
+        index: i + 1,
       ));
     }
   }
 }
+
+/// Used in [CustomSubtitleParser] to comstmize parsing of subtitles.
+typedef OnParsingSubtitle = List<Subtitle> Function(
+    Iterable<RegExpMatch> matchers);
 
 /// Customizable subtitle parser, for custom regexes. You can provide your
 /// regex in [pattern], and custom decode in [onParsing].

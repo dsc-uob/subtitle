@@ -1,5 +1,3 @@
-library subtitle.core;
-
 class ErrorInternetFetchingSubtitle implements Exception {
   final int? code;
   final String? message;

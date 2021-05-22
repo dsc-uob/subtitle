@@ -1,9 +1,6 @@
-library subtitle.core;
-
 /// This model class store the subtitle data.
 class Subtitle {
-  /// Current index of this subtitle in its file.
-  /// The **-1** value mean that is no index for this subtitle in its file.
+  /// Current index number of this subtitle in its file.
   final int index;
 
   /// Store the current text for periode that started with [start] and

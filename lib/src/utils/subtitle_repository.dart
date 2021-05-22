@@ -1,11 +1,27 @@
-library subtitle.util;
-
+import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:http/http.dart';
+import 'package:universal_io/io.dart';
 
 import '../core/exceptions.dart';
+
+/// A response class of HTTP request.
+class Response {
+  /// The status code of response.
+  final int statusCode;
+
+  /// Response body as a string.
+  final String body;
+
+  /// Response body as a list of bytes.
+  final List<int> bodyBytes;
+
+  const Response({
+    required this.statusCode,
+    required this.body,
+    required this.bodyBytes,
+  });
+}
 
 /// The base class of any subtitle repository. Deals with the platform directly
 /// to get or download the required data and submit it to the provider. You can
@@ -18,6 +34,20 @@ abstract class ISubtitleRepository {
 
   /// Help to fetch subtitle file data from a specific file.
   Future<String> fetchFromFile(File file);
+
+  /// Simple method enable you to create a http GET request.
+  Future<Response> get(Uri url) async {
+    final client = HttpClient();
+    final request = await client.getUrl(url);
+    final response = await request.close();
+    final bytes = await response.single;
+
+    return Response(
+      statusCode: response.statusCode,
+      body: utf8.decode(bytes),
+      bodyBytes: bytes,
+    );
+  }
 }
 
 /// Created to load the subtitles as a string from with value need to use futrue.
@@ -33,7 +63,7 @@ class SubtitleRepository extends ISubtitleRepository {
   Future<String> fetchFromNetwork(Uri url) async {
     final response = await get(url);
     if (response.statusCode == 200) {
-      return utf8.decode(response.bodyBytes);
+      return response.body;
     }
 
     throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);

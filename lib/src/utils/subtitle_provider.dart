@@ -1,9 +1,7 @@
-library subtitle.util;
-
 import 'dart:async';
-import 'dart:io';
 
 import 'package:path/path.dart' show extension;
+import 'package:universal_io/io.dart';
 
 import '../core/exceptions.dart';
 import '../utils/types.dart';
