@@ -18,17 +18,20 @@ abstract class ISubtitleParser {
   /// Abstract method parsing the data from any format and return it as a list of
   /// subtitles.
   List<Subtitle> parsing();
+
+  /// Normalize the text data of subtitle, remove unnecessary characters.
+  String normalize(String txt) {
+    return txt
+        .replaceAll(RegExp(r'<\/?[\w.]+\/?>|\n| {2,}'), ' ')
+        .replaceAll(RegExp(r' {2,}'), ' ')
+        .trim();
+  }
 }
 
 /// Usable class to parsing subtitle file. It is used to analyze and convert subtitle
 /// files into software objects that are viewable and usable.
 class SubtitleParser extends ISubtitleParser {
-  /// Stored variable for subtitles.
-  final List<Subtitle> _subtitles;
-
-  SubtitleParser(SubtitleObject object)
-      : _subtitles = List<Subtitle>.empty(growable: true),
-        super(object);
+  const SubtitleParser(SubtitleObject object) : super(object);
 
   @override
   SubtitleRegexObject get regexObject {
@@ -46,78 +49,89 @@ class SubtitleParser extends ISubtitleParser {
   }
 
   @override
-  List<Subtitle> parsing() {
-    _subtitles.clear();
+  List<Subtitle> parsing({
+    bool shouldNormalizeText = true,
+  }) {
+    /// Stored variable for subtitles.
     final pattern = regexObject.pattern;
 
     var regExp = RegExp(pattern);
     var matches = regExp.allMatches(object.data);
 
-    switch (regexObject.type) {
-      case SubtitleType.vtt:
-      case SubtitleType.srt:
-        _getSubtitleFor_VTT_SRT_Format(matches);
-        break;
-      case SubtitleType.ttml:
-      case SubtitleType.dfxp:
-        _getSubtitleFor_TTML_DFXP_Format(matches);
-        break;
-      default:
-    }
-
-    return _subtitles;
+    return _decodeSubtitleFormat(
+      matches,
+      regexObject.type,
+      shouldNormalizeText,
+    );
   }
 
-  /// Parsing WebVTT or SRT format to subtitle and store it in [_subtitles] field.
-  void _getSubtitleFor_VTT_SRT_Format(Iterable<RegExpMatch> matches) {
+  /// Parsing subtitle formats to subtitle and store it in [_subtitles] field.
+  List<Subtitle> _decodeSubtitleFormat(
+    Iterable<RegExpMatch> matches,
+    SubtitleType type,
+    bool shouldNormalizeText,
+  ) {
+    var subtitles = List<Subtitle>.empty(growable: true);
+
     for (var i = 0; i < matches.length; i++) {
       var matcher = matches.elementAt(i);
-      var start = Duration(
-        seconds: int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(4) ?? '0'),
-        milliseconds: int.parse(matcher.group(5) ?? '0'),
-      );
-      var end = Duration(
-        seconds: int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(8) ?? '0'),
-        milliseconds: int.parse(matcher.group(9) ?? '0'),
-      );
 
-      _subtitles.add(Subtitle(
-        start: start,
-        end: end,
-        data: matcher.group(11)?.trim() ?? '',
-        index: int.parse(matcher.group(1) ?? '${i + 1}'),
+      var index = i + 1;
+      if (type == SubtitleType.vtt || type == SubtitleType.srt) {
+        index = int.parse(matcher.group(1) ?? '${i + 1}');
+      }
+
+      final data = shouldNormalizeText
+          ? normalize(matcher.group(11)?.trim() ?? '')
+          : matcher.group(11)?.trim() ?? '';
+
+      subtitles.add(Subtitle(
+        start: _getStartDuration(matcher),
+        end: _getEndDuration(matcher),
+        data: data,
+        index: index,
       ));
     }
+
+    return subtitles;
   }
 
-  /// Parsing TTML or DFXP format to subtitle and store it in [_subtitles] field.
-  void _getSubtitleFor_TTML_DFXP_Format(Iterable<RegExpMatch> matches) {
-    for (var i = 0; i < matches.length; i++) {
-      var matcher = matches.elementAt(i);
-      var start = Duration(
-        seconds: int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(4) ?? '0'),
-        milliseconds: int.parse(matcher.group(5) ?? '0'),
-      );
-      var end = Duration(
-        seconds: int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0') +
-            int.parse(matcher.group(8) ?? '0'),
-        milliseconds: int.parse(matcher.group(9) ?? '0'),
-      );
-
-      _subtitles.add(Subtitle(
-        start: start,
-        end: end,
-        data: matcher.group(11)?.trim() ?? '',
-        index: i + 1,
-      ));
+  /// Fetch the start duration of subtitle by decoding the group inside [matcher].
+  Duration _getStartDuration(RegExpMatch matcher) {
+    var minutes = 0;
+    var hours = 0;
+    if (matcher.group(3) == null && matcher.group(2) != null) {
+      minutes = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
+    } else {
+      minutes = int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0');
+      hours = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
     }
+
+    return Duration(
+      seconds: int.parse(matcher.group(4)?.replaceAll(':', '') ?? '0'),
+      minutes: minutes,
+      hours: hours,
+      milliseconds: int.parse(matcher.group(5) ?? '0'),
+    );
+  }
+
+  /// Fetch the end duration of subtitle by decoding the group inside [matcher].
+  Duration _getEndDuration(RegExpMatch matcher) {
+    var minutes = 0;
+    var hours = 0;
+
+    if (matcher.group(7) == null && matcher.group(6) != null) {
+      minutes = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
+    } else {
+      minutes = int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0');
+      hours = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
+    }
+    return Duration(
+      seconds: int.parse(matcher.group(8)?.replaceAll(':', '') ?? '0'),
+      minutes: minutes,
+      hours: hours,
+      milliseconds: int.parse(matcher.group(9) ?? '0'),
+    );
   }
 }
 

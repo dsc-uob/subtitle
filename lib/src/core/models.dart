@@ -31,6 +31,10 @@ class Subtitle {
   int compareTo(Subtitle other) =>
       start.inMilliseconds.compareTo(other.start.inMilliseconds);
 
+  bool inRange(Duration duration) => start <= duration && end >= duration;
+  bool isLarg(Duration duration) => duration > end;
+  bool inSmall(Duration duration) => duration < start;
+
   @override
   bool operator ==(Object other) {
     if (other is Subtitle) {
@@ -47,6 +51,9 @@ class Subtitle {
 
   @override
   int get hashCode => props.hashCode;
+
+  @override
+  String toString() => '$start --> $end\n$data';
 
   List<Object> get props => [start, end, data, index];
 }

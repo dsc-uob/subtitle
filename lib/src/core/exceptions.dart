@@ -6,3 +6,5 @@ class ErrorInternetFetchingSubtitle implements Exception {
 }
 
 class UnsupportedSubtitleFormat implements Exception {}
+
+class NotInitializedException implements Exception {}

@@ -38,7 +38,11 @@ abstract class SubtitleProvider {
   ///   SubtitleProvider netSub = SubtitleProvider.fromNetwork(Uri.parse('<YOUR SUBTITLE PATH URL>'));
   ///
   /// ```
-  factory SubtitleProvider.fromNetwork(Uri url) => NetworkSubtitle(url);
+  factory SubtitleProvider.fromNetwork(
+    Uri url, {
+    SubtitleType? type,
+  }) =>
+      NetworkSubtitle(url, type: type);
 
   /// ## File subtitles
   /// A class that deals with local files subtitle on the device. You can provide the file
@@ -54,7 +58,11 @@ abstract class SubtitleProvider {
   ///   SubtitleProvider fileSub = SubtitleProvider.fromFile(myFile);
   ///
   /// ```
-  factory SubtitleProvider.fromFile(File file) => FileSubtitle(file);
+  factory SubtitleProvider.fromFile(
+    File file, {
+    SubtitleType? type,
+  }) =>
+      FileSubtitle(file, type: type);
 
   /// Use this provider for string to generate a subtitles. You should provide the **current format**
   /// type of this subtitle. for example:
@@ -95,7 +103,7 @@ abstract class SubtitleProvider {
       );
 
   /// Abstract method return an instance of [SubtitleObject].
-  FutureOr<SubtitleObject> getSubtitle();
+  Future<SubtitleObject> getSubtitle();
 
   /// Return the current [SubtitleType] depended on file extension.
   SubtitleType getSubtitleType(String ext) {
@@ -137,18 +145,22 @@ abstract class SubtitleProvider {
 class NetworkSubtitle extends SubtitleProvider {
   /// The url of subtitle file on the internet.
   final Uri url;
+  final SubtitleType? type;
 
-  const NetworkSubtitle(this.url);
+  const NetworkSubtitle(
+    this.url, {
+    this.type,
+  });
 
   @override
-  FutureOr<SubtitleObject> getSubtitle() async {
+  Future<SubtitleObject> getSubtitle() async {
     // Preparing subtitle file data.
     final _repository = SubtitleRepository.inctance;
     final data = await _repository.fetchFromNetwork(url);
 
     // Find the current format type of subtitle.
     final ext = extension(url.path);
-    final type = getSubtitleType(ext);
+    final type = this.type ?? getSubtitleType(ext);
 
     return SubtitleObject(data: data, type: type);
   }
@@ -171,17 +183,22 @@ class NetworkSubtitle extends SubtitleProvider {
 class FileSubtitle extends SubtitleProvider {
   /// The current file that having subtitle data.
   final File file;
-  const FileSubtitle(this.file);
+  final SubtitleType? type;
+
+  const FileSubtitle(
+    this.file, {
+    this.type,
+  });
 
   @override
-  FutureOr<SubtitleObject> getSubtitle() async {
+  Future<SubtitleObject> getSubtitle() async {
     // Preparing subtitle file data.
     final _repository = SubtitleRepository.inctance;
     final data = await _repository.fetchFromFile(file);
 
     // Find the current format type of subtitle.
     final ext = extension(file.path);
-    final type = getSubtitleType(ext);
+    final type = this.type ?? getSubtitleType(ext);
 
     return SubtitleObject(data: data, type: type);
   }
@@ -226,6 +243,6 @@ class StringSubtitle extends SubtitleProvider {
   });
 
   @override
-  FutureOr<SubtitleObject> getSubtitle() =>
+  Future<SubtitleObject> getSubtitle() async =>
       SubtitleObject(data: data, type: type);
 }
