@@ -1,7 +1,3 @@
-library subtitle.util;
-
-import '../subtitle.dart';
-
 /// Stored the subtitle file data and its format type. Each subtitle file present in
 /// one object or [SubtitleObject]
 class SubtitleObject {
@@ -120,7 +116,3 @@ enum SubtitleType {
   /// This is type used when user provide a custom subtitle format or not supported in this package.
   custom,
 }
-
-/// Used in [CustomSubtitleParser] to comstmize parsing of subtitles.
-typedef OnParsingSubtitle = List<Subtitle> Function(
-    Iterable<RegExpMatch> matchers);

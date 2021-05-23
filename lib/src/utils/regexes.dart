@@ -1,5 +1,3 @@
-library subtitle.util;
-
 import 'subtitle_parser.dart';
 import 'types.dart';
 
@@ -81,7 +79,7 @@ class VttRegex extends SubtitleRegexObject {
   const VttRegex()
       : super(
           pattern:
-              r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s-->\s(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\n(.*(?:\r?\n(?!\r?\n).*)*)',
+              r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)',
           type: SubtitleType.vtt,
         );
 }
@@ -94,7 +92,7 @@ class SrtRegex extends SubtitleRegexObject {
   const SrtRegex()
       : super(
           pattern:
-              r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s-->\s(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\n(.*(?:\r?\n(?!\r?\n).*)*)',
+              r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)',
           type: SubtitleType.srt,
         );
 }

@@ -1,3 +1,16 @@
+## 0.1.0-beta.2
+- Add `SubtitleController` and its feature like: 
+    - Binary search for single search by providing the duration.
+    - Multi result search by providing the duration.
+- Re-architect the files of project.
+- Update regex of `VttRegex` and `SrtRegex`.
+- Fix `SubtitleParser` bug when decoding the subtitles.
+- You can normalize the subtitle text data while decoding, like remove css styles.
+- Manual provide of the `SubtitleType`, or leave it to detected auto.
+- Fix `dart:io` bug to support dart js and flutter web by using `universal_io` package.
+- Reducing non-required dependency `http` package.
+- 3 examples added.
+
 ## 0.1.0-beta.1
 
 - **SubtitleProvider:** Simplifies fetching subtitle file data from multiple sources.

@@ -1,47 +1,7 @@
-import 'package:subtitle/core/models.dart';
-import 'package:subtitle/utils/subtitle_parser.dart';
-import 'package:subtitle/utils/types.dart';
-
-/// WebVTT parsing
-SubtitleObject vttObject = SubtitleObject(
-  type: SubtitleType.vtt,
-  data: '''
-WEBVTT
-
-00:01.000 --> 00:04.000
-- Never drink liquid nitrogen.
-
-00:05.000 --> 00:09.000
-- It will perforate your stomach.
-- You could die.
-''',
-);
-SubtitleParser vttParser = SubtitleParser(vttObject);
-
-/// SRT parsing
-SubtitleObject srtObject = SubtitleObject(
-  type: SubtitleType.srt,
-  data: '''
-1
-00:00:00,000 --> 00:00:01,500
-For www.forom.com
-
-2
-00:00:01,500 --> 00:00:02,500
-<i>Tonight's the night.</i>
-
-3
-00:00:03,000 --> 00:00:15,000
-<i>And it's going to happen
-again and again --</i>
-''',
-);
-SubtitleParser srtParser = SubtitleParser(srtObject);
+import 'package:subtitle/subtitle.dart';
 
 /// TTML and DFXP parsing
-SubtitleObject ttmlORdfxpObject = SubtitleObject(
-  type: SubtitleType.ttml,
-  data: '''
+const ttmlText = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <tt xmlns="http://www.w3.org/ns/ttml">
   <head>
@@ -88,8 +48,7 @@ SubtitleObject ttmlORdfxpObject = SubtitleObject(
         we do not see things upside-down?
       </p>
       <p xml:id="subtitle4" begin="17.2s" end="23.0s">
-        You have never heard the Theory,<br/>
-        then, that the Brain also is inverted?
+        You have never heard the Theory,<br/>then, that the Brain also is inverted?
       </p>
       <p xml:id="subtitle5" begin="23.0s" end="27.0s" style="s2">
         No indeed! What a beautiful fact!
@@ -97,25 +56,21 @@ SubtitleObject ttmlORdfxpObject = SubtitleObject(
     </div>
   </body>
 </tt>
-''',
-);
-SubtitleParser ttmlORdfxpParser = SubtitleParser(ttmlORdfxpObject);
+''';
 
-void main() {
-  // Print VTT
-  print('========== WebVTT ==========');
-  printResult(vttParser.parsing());
-
-  print('========== SRT ==========');
-  // Print SRT
-  printResult(srtParser.parsing());
-
-  print('========== TTML|DFXP ==========');
-  // Print TTML or DFXP
-  printResult(ttmlORdfxpParser.parsing());
+Future<void> main() async {
+  var sp = SubtitleProvider.fromString(
+    data: ttmlText,
+    type: SubtitleType.ttml,
+  );
+  var sc = SubtitleController(provider: sp);
+  await sc.initial();
+  var s = sc.durationSearch(Duration(seconds: 29));
+  print(s?.data ?? 'No subtitle in range of provided duration.');
 }
 
 void printResult(List<Subtitle> subtitles) {
+  subtitles.sort((s1, s2) => s1.compareTo(s2));
   for (var result in subtitles) {
     print(
         '(${result.index}) Start: ${result.start}, end: ${result.end} [${result.data}]');
