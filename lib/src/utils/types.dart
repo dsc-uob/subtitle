@@ -1,3 +1,5 @@
+import 'package:subtitle/src/core/models.dart';
+
 /// Stored the subtitle file data and its format type. Each subtitle file present in
 /// one object or [SubtitleObject]
 class SubtitleObject {
@@ -7,9 +9,12 @@ class SubtitleObject {
   /// The current subtitle format type of current file.
   final SubtitleType type;
 
+  final List<Subtitle>? subtitles;
+
   const SubtitleObject({
     required this.data,
     required this.type,
+    this.subtitles,
   });
 
   @override
@@ -29,7 +34,7 @@ class SubtitleObject {
   @override
   int get hashCode => props.hashCode;
 
-  List<Object> get props => [data, type];
+  List<Object?> get props => [data, type, subtitles];
 }
 
 /// ## Subtitle formats types
@@ -115,4 +120,5 @@ enum SubtitleType {
   ///
   /// This is type used when user provide a custom subtitle format or not supported in this package.
   custom,
+  parsedData,
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:path/path.dart' show extension;
+import 'package:subtitle/src/core/models.dart';
 import 'package:universal_io/io.dart';
 
 import '../core/exceptions.dart';
@@ -101,6 +102,11 @@ abstract class SubtitleProvider {
         data: data,
         type: type,
       );
+
+  factory SubtitleProvider.parsedData({
+    required List<Subtitle> subtitles,
+  }) =>
+      ParsedSubtitle(subtitles);
 
   /// Abstract method return an instance of [SubtitleObject].
   Future<SubtitleObject> getSubtitle();
@@ -245,4 +251,15 @@ class StringSubtitle extends SubtitleProvider {
   @override
   Future<SubtitleObject> getSubtitle() async =>
       SubtitleObject(data: data, type: type);
+}
+
+class ParsedSubtitle extends SubtitleProvider {
+  /// The url of subtitle file on the internet.
+  final List<Subtitle> subtitles;
+
+  const ParsedSubtitle(this.subtitles);
+
+  @override
+  Future<SubtitleObject> getSubtitle() async => SubtitleObject(
+      data: '', type: SubtitleType.parsedData, subtitles: subtitles);
 }

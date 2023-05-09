@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:subtitle/src/utils/types.dart';
+
 import '../core/exceptions.dart';
 import '../core/models.dart';
 import 'subtitle_parser.dart';
@@ -18,9 +20,8 @@ abstract class ISubtitleController {
   /// The parser class, maybe still null if you are not initial the controller.
   ISubtitleParser? _parser;
 
-  ISubtitleController({
-    required SubtitleProvider provider,
-  })   : _provider = provider,
+  ISubtitleController({required SubtitleProvider provider})
+      : _provider = provider,
         subtitles = List.empty(growable: true);
 
   //! Getters
@@ -32,10 +33,10 @@ abstract class ISubtitleController {
   }
 
   /// Return the current subtitle provider
-  SubtitleProvider get provider => _provider;
+  SubtitleProvider? get provider => _provider;
 
   /// Check it the controller is initial or not.
-  bool get initialized => _parser != null;
+  bool get initialized => _parser != null || subtitles.isNotEmpty;
 
   //! Abstract methods
   /// Use this method to customize your search algorithm.
@@ -48,6 +49,11 @@ abstract class ISubtitleController {
   Future<void> initial() async {
     if (initialized) return;
     final providerObject = await _provider.getSubtitle();
+    if (providerObject.type == SubtitleType.parsedData) {
+      subtitles.addAll(providerObject.subtitles ?? []);
+      return;
+    }
+
     _parser = SubtitleParser(providerObject);
     subtitles.addAll(_parser!.parsing());
     sort();
@@ -68,6 +74,50 @@ class SubtitleController extends ISubtitleController {
     required SubtitleProvider provider,
   }) : super(provider: provider);
 
+  static Future<SubtitleController> merge(
+      SubtitleController sc1, SubtitleController sc2) async {
+    var mergedSubtitles = List<Subtitle>.empty(growable: true);
+
+    var index = 0, targetIndex = 0;
+    var srcSubtitles = List<Subtitle>.of(sc1.subtitles);
+    var targetSubtitles = List.of(sc2.subtitles);
+
+    if (srcSubtitles.isEmpty) {
+      mergedSubtitles = targetSubtitles;
+    } else {
+      srcSubtitles.forEach((s1) {
+        var beMerged = false;
+        for (; targetIndex < targetSubtitles.length; targetIndex++) {
+          var s2 = targetSubtitles.elementAt(targetIndex);
+          var diff = s1.start.inMilliseconds - s2.start.inMilliseconds;
+          if (diff > 0) {
+            mergedSubtitles.add(s2.copyWith(index: index++));
+          } else if (diff == 0) {
+            mergedSubtitles.add(
+                s1.copyWith(index: index++, data: '${s1.data}\n${s2.data}'));
+            beMerged = true;
+          } else {
+            break;
+          }
+        }
+
+        if (!beMerged) {
+          mergedSubtitles.add(s1.copyWith(index: index++));
+        }
+      });
+
+      for (; targetIndex < targetSubtitles.length; targetIndex++) {
+        mergedSubtitles.add(
+            targetSubtitles.elementAt(targetIndex).copyWith(index: index++));
+      }
+    }
+
+    var controller = SubtitleController(
+        provider: SubtitleProvider.parsedData(subtitles: mergedSubtitles));
+    await controller.initial();
+    return controller;
+  }
+
   /// Fetch your current single subtitle value by providing the duration.
   @override
   Subtitle? durationSearch(Duration duration) {
@@ -81,6 +131,7 @@ class SubtitleController extends ISubtitleController {
     if (index > -1) {
       return subtitles[index];
     }
+    return null;
   }
 
   /// Perform binary search when search about subtitle by duration.

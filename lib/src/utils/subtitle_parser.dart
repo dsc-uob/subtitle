@@ -77,17 +77,18 @@ class SubtitleParser extends ISubtitleParser {
       var matcher = matches.elementAt(i);
 
       var index = i + 1;
-      if (type == SubtitleType.vtt || type == SubtitleType.srt) {
-        index = int.parse(matcher.group(1) ?? '${i + 1}');
+      if (regexObject.cueIndexOffset != null) {
+        index =
+            int.parse(matcher.group(regexObject.cueIndexOffset!) ?? '$index');
       }
 
       final data = shouldNormalizeText
-          ? normalize(matcher.group(11)?.trim() ?? '')
-          : matcher.group(11)?.trim() ?? '';
+          ? normalize(matcher.group(regexObject.textIndexOffset)?.trim() ?? '')
+          : matcher.group(regexObject.textIndexOffset)?.trim() ?? '';
 
       subtitles.add(Subtitle(
-        start: _getStartDuration(matcher),
-        end: _getEndDuration(matcher),
+        start: _getDuration(matcher, regexObject.startTimeIndexOffset),
+        end: _getDuration(matcher, regexObject.endTimeIndexOffset),
         data: data,
         index: index,
       ));
@@ -96,43 +97,17 @@ class SubtitleParser extends ISubtitleParser {
     return subtitles;
   }
 
-  /// Fetch the start duration of subtitle by decoding the group inside [matcher].
-  Duration _getStartDuration(RegExpMatch matcher) {
-    var minutes = 0;
-    var hours = 0;
-    if (matcher.group(3) == null && matcher.group(2) != null) {
-      minutes = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
-    } else {
-      minutes = int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0');
-      hours = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
-    }
-
-    return Duration(
-      seconds: int.parse(matcher.group(4)?.replaceAll(':', '') ?? '0'),
-      minutes: minutes,
-      hours: hours,
-      milliseconds: int.parse(matcher.group(5) ?? '0'),
-    );
-  }
-
-  /// Fetch the end duration of subtitle by decoding the group inside [matcher].
-  Duration _getEndDuration(RegExpMatch matcher) {
-    var minutes = 0;
-    var hours = 0;
-
-    if (matcher.group(7) == null && matcher.group(6) != null) {
-      minutes = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
-    } else {
-      minutes = int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0');
-      hours = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
-    }
-    return Duration(
-      seconds: int.parse(matcher.group(8)?.replaceAll(':', '') ?? '0'),
-      minutes: minutes,
-      hours: hours,
-      milliseconds: int.parse(matcher.group(9) ?? '0'),
-    );
-  }
+  /// Fetch the duration of subtitle by decoding the group inside [matcher].
+  Duration _getDuration(RegExpMatch matcher, int indexOffset) => Duration(
+        hours:
+            int.parse(matcher.group(indexOffset)?.replaceAll(':', '') ?? '0'),
+        minutes: int.parse(
+            matcher.group(indexOffset + 1)?.replaceAll(':', '') ?? '0'),
+        seconds: int.parse(
+            matcher.group(indexOffset + 2)?.replaceAll(':', '') ?? '0'),
+        milliseconds: int.parse(
+            matcher.group(indexOffset + 3)?.replaceAll(':', '').padRight(3, '0') ?? '0'),
+      );
 }
 
 /// Used in [CustomSubtitleParser] to comstmize parsing of subtitles.
@@ -144,6 +119,10 @@ typedef OnParsingSubtitle = List<Subtitle> Function(
 class CustomSubtitleParser extends ISubtitleParser {
   /// Store the custom regexp of subtitle.
   final String pattern;
+  final int? cueIndexOffset;
+  final int startTimeIndexOffset;
+  final int endTimeIndexOffset;
+  final int textIndexOffset;
 
   /// Decoding the subtitles and return a list from result.
   final OnParsingSubtitle onParsing;
@@ -152,6 +131,10 @@ class CustomSubtitleParser extends ISubtitleParser {
     required SubtitleObject object,
     required this.pattern,
     required this.onParsing,
+    required this.startTimeIndexOffset,
+    required this.endTimeIndexOffset,
+    required this.textIndexOffset,
+    this.cueIndexOffset,
   }) : super(object);
 
   @override
@@ -162,5 +145,7 @@ class CustomSubtitleParser extends ISubtitleParser {
   }
 
   @override
-  SubtitleRegexObject get regexObject => SubtitleRegexObject.custom(pattern);
+  SubtitleRegexObject get regexObject => SubtitleRegexObject.custom(
+      pattern, startTimeIndexOffset, endTimeIndexOffset, textIndexOffset,
+      cueIndexOffset: cueIndexOffset);
 }

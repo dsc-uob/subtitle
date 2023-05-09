@@ -21,10 +21,18 @@ abstract class SubtitleRegexObject {
   /// The regex class
   final String pattern;
   final SubtitleType type;
+  final int? cueIndexOffset;
+  final int textIndexOffset;
+  final int startTimeIndexOffset;
+  final int endTimeIndexOffset;
 
   const SubtitleRegexObject({
     required this.pattern,
     required this.type,
+    required this.startTimeIndexOffset,
+    required this.endTimeIndexOffset,
+    required this.textIndexOffset,
+    this.cueIndexOffset,
   });
 
   /// # WebVTT Regex
@@ -49,7 +57,11 @@ abstract class SubtitleRegexObject {
   ///
   /// This is the user define regex. Used in [SubtitleParser] to parsing this subtitle format to
   /// dart code.
-  factory SubtitleRegexObject.custom(String pattern) => CustomRegex(pattern);
+  factory SubtitleRegexObject.custom(String pattern, int startTimeIndexOffset,
+          int endTimeIndexOffset, int textIndexOffset, {int? cueIndexOffset}) =>
+      CustomRegex(
+          pattern, startTimeIndexOffset, endTimeIndexOffset, textIndexOffset,
+          cueIndexOffset: cueIndexOffset);
 
   @override
   bool operator ==(Object other) {
@@ -81,6 +93,10 @@ class VttRegex extends SubtitleRegexObject {
           pattern:
               r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)',
           type: SubtitleType.vtt,
+          cueIndexOffset: 1,
+          startTimeIndexOffset: 2,
+          endTimeIndexOffset: 6,
+          textIndexOffset: 11,
         );
 }
 
@@ -94,6 +110,10 @@ class SrtRegex extends SubtitleRegexObject {
           pattern:
               r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)',
           type: SubtitleType.srt,
+          cueIndexOffset: 1,
+          startTimeIndexOffset: 2,
+          endTimeIndexOffset: 6,
+          textIndexOffset: 11,
         );
 }
 
@@ -107,6 +127,9 @@ class TtmlRegex extends SubtitleRegexObject {
           pattern:
               r'<p ([\w:]+="\w+".*)?begin="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?" end="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?"(\s\w+="\w+".*)?>(\D+)<\/p>',
           type: SubtitleType.ttml,
+          startTimeIndexOffset: 2,
+          endTimeIndexOffset: 6,
+          textIndexOffset: 11,
         );
 }
 
@@ -115,9 +138,15 @@ class TtmlRegex extends SubtitleRegexObject {
 /// This is the user define regex. Used in [SubtitleParser] to parsing this subtitle format to
 /// dart code.
 class CustomRegex extends SubtitleRegexObject {
-  const CustomRegex(String pattern)
+  const CustomRegex(String pattern, int startTimeIndexOffset,
+      int endTimeIndexOffset, textIndexOffset,
+      {int? cueIndexOffset})
       : super(
           pattern: pattern,
           type: SubtitleType.custom,
+          cueIndexOffset: cueIndexOffset,
+          startTimeIndexOffset: startTimeIndexOffset,
+          endTimeIndexOffset: endTimeIndexOffset,
+          textIndexOffset: textIndexOffset,
         );
 }
