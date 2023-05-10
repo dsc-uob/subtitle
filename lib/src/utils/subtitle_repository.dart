@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:universal_io/io.dart';
 
 import '../core/exceptions.dart';
@@ -37,15 +38,13 @@ abstract class ISubtitleRepository {
 
   /// Simple method enable you to create a http GET request.
   Future<Response> get(Uri url) async {
-    final client = HttpClient();
-    final request = await client.getUrl(url);
-    final response = await request.close();
-    final bytes = await response.single;
+    final dio = Dio();
+    final response = await dio.getUri(url);
 
     return Response(
-      statusCode: response.statusCode,
-      body: utf8.decode(bytes),
-      bodyBytes: bytes,
+      statusCode: response.statusCode ?? 200,
+      body: response.toString(),
+      bodyBytes: utf8.encode(response.data.toString()),
     );
   }
 }
