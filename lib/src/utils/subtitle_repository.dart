@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
 import '../core/exceptions.dart';
@@ -30,6 +31,9 @@ class Response {
 abstract class ISubtitleRepository {
   const ISubtitleRepository();
 
+  @visibleForTesting
+  static Dio? dioInstance = Dio();
+
   /// Help to fetch subtitle file data from internet.
   Future<String> fetchFromNetwork(Uri url);
 
@@ -38,7 +42,7 @@ abstract class ISubtitleRepository {
 
   /// Simple method enable you to create a http GET request.
   Future<Response> get(Uri url) async {
-    final dio = Dio();
+    final dio = dioInstance ?? Dio();
     final response = await dio.getUri(url);
 
     return Response(
