@@ -81,7 +81,7 @@ const ttmlText = '''
         It is puzzling, why is it<br/>
         we do not see things upside-down?
       </p>
-      <p xml:id="subtitle4" begin="14.5s" end="17.0s" style="s2">
+      <p xml:id="subtitle4" begin="14.550s" end="17.0s" style="s2">
         ===== This line should be merged into somewhere =====</p>
       <p xml:id="subtitle5" begin="17.2s" end="23.0s">
         You have never heard the Theory,<br/>then, that the Brain also is inverted?
@@ -117,7 +117,7 @@ void main(List<String> args) async {
   printResult(ttmlController.subtitles);
 
   var mergedController =
-      await SubtitleController.merge(vttController, ttmlController);
+      await SubtitleController.merge(vttController, ttmlController, deltaMs: 100);
   print('\n\n======= after merged =======');
   printResult(mergedController.subtitles);
 }
