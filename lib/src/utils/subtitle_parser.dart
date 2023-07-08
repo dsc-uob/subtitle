@@ -56,7 +56,7 @@ class SubtitleParser extends ISubtitleParser {
     final pattern = regexObject.pattern;
 
     var regExp = RegExp(pattern);
-    var matches = regExp.allMatches(object.data);
+    var matches = regExp.allMatches(object.data.replaceAll('\r', ''));
 
     return _decodeSubtitleFormat(
       matches,
