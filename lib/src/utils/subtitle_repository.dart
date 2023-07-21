@@ -64,12 +64,16 @@ class SubtitleRepository extends ISubtitleRepository {
   /// Load the subtitles from network by provide the file url.
   @override
   Future<String> fetchFromNetwork(Uri url) async {
-    final response = await get(url);
-    if (response.statusCode == 200) {
-      return response.body;
-    }
+    try {
+      final response = await get(url);
+      if (response.statusCode == 200) {
+        return response.body;
+      }
 
-    throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
+      throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
+    } catch (e) {
+      return e.toString();
+    }
   }
 
   /// Load the subtitles from specific file.
