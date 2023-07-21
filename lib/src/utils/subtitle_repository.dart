@@ -40,7 +40,10 @@ abstract class ISubtitleRepository {
     final client = HttpClient();
     final request = await client.getUrl(url);
     final response = await request.close();
-    final bytes = await response.single;
+    // final bytes = await response.single;
+    final List<int> bytes = await response.toList().then(
+          (value) => value.expand((list) => list).toList(),
+        );
 
     return Response(
       statusCode: response.statusCode,
