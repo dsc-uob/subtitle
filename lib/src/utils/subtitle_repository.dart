@@ -40,7 +40,10 @@ abstract class ISubtitleRepository {
     final client = HttpClient();
     final request = await client.getUrl(url);
     final response = await request.close();
-    final bytes = await response.single;
+    // final bytes = await response.single;
+    final List<int> bytes = await response.toList().then(
+          (value) => value.expand((list) => list).toList(),
+        );
 
     return Response(
       statusCode: response.statusCode,
@@ -61,12 +64,16 @@ class SubtitleRepository extends ISubtitleRepository {
   /// Load the subtitles from network by provide the file url.
   @override
   Future<String> fetchFromNetwork(Uri url) async {
-    final response = await get(url);
-    if (response.statusCode == 200) {
-      return response.body;
-    }
+    try {
+      final response = await get(url);
+      if (response.statusCode == 200) {
+        return response.body;
+      }
 
-    throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
+      throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
+    } catch (e) {
+      return e.toString();
+    }
   }
 
   /// Load the subtitles from specific file.
