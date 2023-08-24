@@ -11,7 +11,7 @@ import 'subtitle_repository.dart';
 /// simplify fetching subtitle file data from multiple sources.
 abstract class SubtitleProvider {
   /// Store the supported subtitle file format extensions.
-  static const List<String> supported_extensions = [
+  static const List<String> supportedExtensions = [
     '.vtt',
     '.srt',
     '.sbv',
@@ -142,21 +142,38 @@ abstract class SubtitleProvider {
 ///   SubtitleProvider netSub = SubtitleProvider.fromNetwork(Uri.parse('<YOUR SUBTITLE PATH URL>'));
 ///
 /// ```
+///
+/// It will throw an [ErrorInternetFetchingSubtitle] if failed to fetch subtitle or the [successHttpStatus] not matched.
 class NetworkSubtitle extends SubtitleProvider {
   /// The url of subtitle file on the internet.
   final Uri url;
   final SubtitleType? type;
+  final Duration? connectionTimeout;
+  final Map<String, String>? headers;
+  final bool Function(X509Certificate cert, String host, int port)?
+      badCertificateCallback;
+  final int successHttpStatus;
 
   const NetworkSubtitle(
     this.url, {
     this.type,
+    this.headers,
+    this.connectionTimeout,
+    this.successHttpStatus = HttpStatus.ok,
+    this.badCertificateCallback,
   });
 
   @override
   Future<SubtitleObject> getSubtitle() async {
     // Preparing subtitle file data.
-    final _repository = SubtitleRepository.inctance;
-    final data = await _repository.fetchFromNetwork(url);
+    final repository = SubtitleRepository.inctance;
+    final data = await repository.fetchFromNetwork(
+      url,
+      headers: headers,
+      connectionTimeout: connectionTimeout,
+      successHttpStatus: successHttpStatus,
+      badCertificateCallback: badCertificateCallback,
+    );
 
     // Find the current format type of subtitle.
     final ext = extension(url.path);
@@ -193,8 +210,8 @@ class FileSubtitle extends SubtitleProvider {
   @override
   Future<SubtitleObject> getSubtitle() async {
     // Preparing subtitle file data.
-    final _repository = SubtitleRepository.inctance;
-    final data = await _repository.fetchFromFile(file);
+    final repository = SubtitleRepository.inctance;
+    final data = await repository.fetchFromFile(file);
 
     // Find the current format type of subtitle.
     final ext = extension(file.path);

@@ -3,7 +3,7 @@ import 'package:universal_io/io.dart';
 
 void main(List<String> args) async {
   //! By using controller - it's easly way
-  var file = File('example/subtitles.vtt');
+  var file = File('subtitles.srt');
   var controller = SubtitleController(
       provider: SubtitleProvider.fromFile(
     file,

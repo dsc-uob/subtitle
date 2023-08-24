@@ -36,19 +36,40 @@ abstract class ISubtitleRepository {
   Future<String> fetchFromFile(File file);
 
   /// Simple method enable you to create a http GET request.
-  Future<Response> get(Uri url) async {
+  Future<Response> get(
+    Uri url, {
+    Duration? connectionTimeout,
+    Map<String, String>? headers,
+    bool Function(X509Certificate cert, String host, int port)?
+        badCertificateCallback,
+  }) async {
+    // Create a new HTTP client instance
     final client = HttpClient();
-    final request = await client.getUrl(url);
-    final response = await request.close();
-    // final bytes = await response.single;
-    final List<int> bytes = await response.toList().then(
-          (value) => value.expand((list) => list).toList(),
-        );
 
+    // Set the options of this HTTP client
+    client.connectionTimeout = connectionTimeout;
+    client.badCertificateCallback = badCertificateCallback;
+    final request = await client.getUrl(url);
+    if (headers != null) {
+      headers.forEach((name, value) {
+        request.headers.add(name, value);
+      });
+    }
+
+    // Start the HTTP request
+    final response = await request.close();
+
+    // Decode the body
+    final responseBody = await response.transform(utf8.decoder).join();
+
+    // Close the client
+    client.close(force: true);
+
+    // Return a resutl
     return Response(
       statusCode: response.statusCode,
-      body: utf8.decode(bytes),
-      bodyBytes: bytes,
+      body: responseBody,
+      bodyBytes: responseBody.codeUnits,
     );
   }
 }
@@ -56,6 +77,8 @@ abstract class ISubtitleRepository {
 /// Created to load the subtitles as a string from with value need to use futrue.
 /// Deals with the platform directly to get or download the required data and submit
 /// it to the provider.
+///
+/// It will throw an [ErrorInternetFetchingSubtitle] if failed to fetch subtitle or the [successHttpStatus] not matched.
 class SubtitleRepository extends ISubtitleRepository {
   const SubtitleRepository._();
 
@@ -63,17 +86,26 @@ class SubtitleRepository extends ISubtitleRepository {
 
   /// Load the subtitles from network by provide the file url.
   @override
-  Future<String> fetchFromNetwork(Uri url) async {
-    try {
-      final response = await get(url);
-      if (response.statusCode == 200) {
-        return response.body;
-      }
+  Future<String> fetchFromNetwork(
+    Uri url, {
+    Duration? connectionTimeout,
+    Map<String, String>? headers,
+    bool Function(X509Certificate cert, String host, int port)?
+        badCertificateCallback,
+    int successHttpStatus = HttpStatus.ok,
+  }) async {
+    final response = await get(
+      url,
+      headers: headers,
+      connectionTimeout: connectionTimeout,
+      badCertificateCallback: badCertificateCallback,
+    );
 
-      throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
-    } catch (e) {
-      return e.toString();
+    if (response.statusCode == successHttpStatus) {
+      return response.body;
     }
+
+    throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
   }
 
   /// Load the subtitles from specific file.

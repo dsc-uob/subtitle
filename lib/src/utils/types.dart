@@ -111,7 +111,7 @@ enum SubtitleType {
   /// already supported by all major browsers.
   vtt,
 
-  /// ## Custom (User defin type)
+  /// ## Custom (User define type)
   ///
   /// This is type used when user provide a custom subtitle format or not supported in this package.
   custom,

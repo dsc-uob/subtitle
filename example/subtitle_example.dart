@@ -65,7 +65,7 @@ Future<void> main() async {
   );
   var sc = SubtitleController(provider: sp);
   await sc.initial();
-  var s = sc.durationSearch(Duration(seconds: 29));
+  var s = sc.durationSearch(Duration(seconds: 12));
   print(s?.data ?? 'No subtitle in range of provided duration.');
 }
 

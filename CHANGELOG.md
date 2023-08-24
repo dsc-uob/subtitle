@@ -1,3 +1,14 @@
+## 0.1.0
+- Addressed an issue with subtitle parsing (srt) that was affecting certain cases. This contribution is credited to @sahanForaty. Refer to issue #6.
+- Resolved a network subtitle problem, contributed by @thecarry98. See issue #8.
+- Corrected the issue associated with the unclosed HttpClient in the network subtitle handling.
+- Added SRT format example.
+
+## 0.1.0-beta.3
+- Fix srt bug.
+- Remove path package from dependency.
+- Rewrite and enhance regular expressions.
+
 ## 0.1.0-beta.2
 - Add `SubtitleController` and its feature like: 
     - Binary search for single search by providing the duration.

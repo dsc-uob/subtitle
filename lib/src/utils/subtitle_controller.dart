@@ -20,7 +20,7 @@ abstract class ISubtitleController {
 
   ISubtitleController({
     required SubtitleProvider provider,
-  })   : _provider = provider,
+  })  : _provider = provider,
         subtitles = List.empty(growable: true);
 
   //! Getters
@@ -81,6 +81,8 @@ class SubtitleController extends ISubtitleController {
     if (index > -1) {
       return subtitles[index];
     }
+
+    return null;
   }
 
   /// Perform binary search when search about subtitle by duration.
@@ -110,9 +112,9 @@ class SubtitleController extends ISubtitleController {
   List<Subtitle> multiDurationSearch(Duration duration) {
     var correctSubtitles = List<Subtitle>.empty(growable: true);
 
-    subtitles.forEach((value) {
+    for (var value in subtitles) {
       if (value.inRange(duration)) correctSubtitles.add(value);
-    });
+    }
 
     return correctSubtitles;
   }

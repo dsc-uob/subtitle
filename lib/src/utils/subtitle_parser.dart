@@ -74,21 +74,27 @@ class SubtitleParser extends ISubtitleParser {
     var subtitles = List<Subtitle>.empty(growable: true);
 
     for (var i = 0; i < matches.length; i++) {
-      var matcher = matches.elementAt(i);
-
+      final matcher = matches.elementAt(i);
       var index = i + 1;
+
       if (type == SubtitleType.vtt || type == SubtitleType.srt) {
         index = int.parse(matcher.group(1) ?? '${i + 1}');
       }
 
-      final data = shouldNormalizeText
-          ? normalize(matcher.group(11)?.trim() ?? '')
-          : matcher.group(11)?.trim() ?? '';
+      final nonNormalizedText =
+          ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)
+                  ? matcher.group(9)?.trim()
+                  : matcher.group(11)?.trim()) ??
+              '';
+
+      final normalizedText = shouldNormalizeText
+          ? normalize(nonNormalizedText)
+          : nonNormalizedText;
 
       subtitles.add(Subtitle(
-        start: _getStartDuration(matcher),
-        end: _getEndDuration(matcher),
-        data: data,
+        start: _getStartDuration(matcher, type),
+        end: _getEndDuration(matcher, type),
+        data: normalizedText,
         index: index,
       ));
     }
@@ -97,40 +103,58 @@ class SubtitleParser extends ISubtitleParser {
   }
 
   /// Fetch the start duration of subtitle by decoding the group inside [matcher].
-  Duration _getStartDuration(RegExpMatch matcher) {
-    var minutes = 0;
-    var hours = 0;
-    if (matcher.group(3) == null && matcher.group(2) != null) {
-      minutes = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
+  Duration _getStartDuration(RegExpMatch matcher, SubtitleType type) {
+    int hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
+
+    if ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)) {
+      hours = int.parse(matcher.group(1) ?? '0');
+      minutes = int.parse(matcher.group(2) ?? '0');
+      seconds = int.parse(matcher.group(3) ?? '0');
+      milliseconds = int.parse(matcher.group(4) ?? '0');
     } else {
-      minutes = int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0');
-      hours = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
+      if (matcher.group(3) == null && matcher.group(2) != null) {
+        minutes = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
+      } else {
+        minutes = int.parse(matcher.group(3)?.replaceAll(':', '') ?? '0');
+        hours = int.parse(matcher.group(2)?.replaceAll(':', '') ?? '0');
+      }
+      seconds = int.parse(matcher.group(4)?.replaceAll(':', '') ?? '0');
+      milliseconds = int.parse(matcher.group(5) ?? '0');
     }
 
     return Duration(
-      seconds: int.parse(matcher.group(4)?.replaceAll(':', '') ?? '0'),
-      minutes: minutes,
       hours: hours,
-      milliseconds: int.parse(matcher.group(5) ?? '0'),
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
     );
   }
 
   /// Fetch the end duration of subtitle by decoding the group inside [matcher].
-  Duration _getEndDuration(RegExpMatch matcher) {
-    var minutes = 0;
-    var hours = 0;
+  Duration _getEndDuration(RegExpMatch matcher, SubtitleType type) {
+    int hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
 
-    if (matcher.group(7) == null && matcher.group(6) != null) {
-      minutes = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
+    if ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)) {
+      hours = int.parse(matcher.group(5) ?? '0');
+      minutes = int.parse(matcher.group(6) ?? '0');
+      seconds = int.parse(matcher.group(7) ?? '0');
+      milliseconds = int.parse(matcher.group(8) ?? '0');
     } else {
-      minutes = int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0');
-      hours = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
+      if (matcher.group(7) == null && matcher.group(6) != null) {
+        minutes = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
+      } else {
+        minutes = int.parse(matcher.group(7)?.replaceAll(':', '') ?? '0');
+        hours = int.parse(matcher.group(6)?.replaceAll(':', '') ?? '0');
+      }
+      seconds = int.parse(matcher.group(8)?.replaceAll(':', '') ?? '0');
+      milliseconds = int.parse(matcher.group(9) ?? '0');
     }
+
     return Duration(
-      seconds: int.parse(matcher.group(8)?.replaceAll(':', '') ?? '0'),
-      minutes: minutes,
       hours: hours,
-      milliseconds: int.parse(matcher.group(9) ?? '0'),
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
     );
   }
 }

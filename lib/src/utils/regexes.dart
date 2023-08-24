@@ -76,10 +76,11 @@ abstract class SubtitleRegexObject {
 /// This is the web vtt regex. Used in [SubtitleParser] to parsing this subtitle format to
 /// dart code.
 class VttRegex extends SubtitleRegexObject {
+  static const String _regex =
+      r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)';
   const VttRegex()
       : super(
-          pattern:
-              r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)',
+          pattern: _regex,
           type: SubtitleType.vtt,
         );
 }
@@ -89,10 +90,11 @@ class VttRegex extends SubtitleRegexObject {
 /// This is the subrip regex. Used in [SubtitleParser] to parsing this subtitle format to
 /// dart code.
 class SrtRegex extends SubtitleRegexObject {
+  static const String _regex =
+      r'(\d+)?\n(?:(\d{1,}):)?(?:(\d{1,2}):)?(\d{1,2})[.,]+(\d+)\s*-->\s*(?:(\d{1,2}):)?(?:(\d{1,2}):)?(\d{1,2}).(\d+)(?:.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)';
   const SrtRegex()
       : super(
-          pattern:
-              r'(\d+)?\n(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)\s?-->\s?(\d{1,}:)?(\d{1,2}:)?(\d{1,2}).(\d+)(.*(?:\r?(?!\r?).*)*)\n(.*(?:\r?\n(?!\r?\n).*)*)',
+          pattern: _regex,
           type: SubtitleType.srt,
         );
 }
@@ -102,10 +104,11 @@ class SrtRegex extends SubtitleRegexObject {
 /// This is the **ttml** or **dfxp** regex. Used in [SubtitleParser] to parsing this subtitle format to
 /// dart code.
 class TtmlRegex extends SubtitleRegexObject {
+  static const String _regex =
+      r'<p[\w\d:="\s]+?begin="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?"[\w\d:="\s]+end="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?"[\w\d:="\s]*>(\D+)<\/p>';
   const TtmlRegex()
       : super(
-          pattern:
-              r'<p ([\w:]+="\w+".*)?begin="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?" end="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?"(\s\w+="\w+".*)?>(\D+)<\/p>',
+          pattern: _regex,
           type: SubtitleType.ttml,
         );
 }
