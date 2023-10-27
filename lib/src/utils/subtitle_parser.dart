@@ -84,7 +84,7 @@ class SubtitleParser extends ISubtitleParser {
       final nonNormalizedText =
           ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)
                   ? matcher.group(9)?.trim()
-                  : matcher.group(11)?.trim()) ??
+                  : matcher.group(10)?.trim()) ??
               '';
 
       final normalizedText = shouldNormalizeText
