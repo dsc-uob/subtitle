@@ -76,7 +76,7 @@ class SubtitleController extends ISubtitleController {
 
   static Future<SubtitleController> merge(
       SubtitleController sc1, SubtitleController sc2,
-      {int deltaMs = 0}) async {
+      {int deltaMs = 0, String joinWith = '\n'}) async {
     var mergedSubtitles = List<Subtitle>.empty(growable: true);
 
     var index = 0, targetIndex = 0;
@@ -92,8 +92,8 @@ class SubtitleController extends ISubtitleController {
           var s2 = targetSubtitles.elementAt(targetIndex);
           var diff = s1.start.inMilliseconds - s2.start.inMilliseconds;
           if (diff.abs() <= deltaMs) {
-            mergedSubtitles.add(
-                s1.copyWith(index: index++, data: '${s1.data}\n${s2.data}'));
+            mergedSubtitles.add(s1.copyWith(
+                index: index++, data: '${s1.data}$joinWith${s2.data}'));
             beMerged = true;
           } else if (diff > 0) {
             mergedSubtitles.add(s2.copyWith(index: index++));
