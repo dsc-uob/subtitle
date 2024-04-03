@@ -88,29 +88,36 @@ class SubtitleController extends ISubtitleController {
     } else {
       srcSubtitles.forEach((s1) {
         var beMerged = false;
+        var mergedS2 = '';
         for (; targetIndex < targetSubtitles.length; targetIndex++) {
           var s2 = targetSubtitles.elementAt(targetIndex);
-          var diff = s1.start.inMilliseconds - s2.start.inMilliseconds;
-          if (diff.abs() <= deltaMs) {
-            mergedSubtitles.add(s1.copyWith(
-                index: index++, data: '${s1.data}$joinWith${s2.data}'));
-            beMerged = true;
-          } else if (diff > 0) {
-            mergedSubtitles.add(s2.copyWith(index: index++));
-          } else {
+
+          if ((s2.end.inMilliseconds - deltaMs) <= s1.start.inMilliseconds) {
+            continue;
+          } else if ((s1.start.inMilliseconds - deltaMs) <=
+                  s2.start.inMilliseconds &&
+              s2.end.inMilliseconds <= (s1.end.inMilliseconds + deltaMs)) {
+            if (mergedS2.isEmpty) {
+              mergedS2 = '${s1.data}$joinWith${s2.data}';
+            } else {
+              mergedS2 += ' ${s2.data}';
+            }
+          } else if ((s2.start.inMilliseconds - deltaMs) <=
+                  s1.start.inMilliseconds &&
+              s1.end.inMilliseconds <= (s2.end.inMilliseconds + deltaMs)) {
+            mergedS2 = '${s1.data}$joinWith${s2.data}';
+          } else if (s2.start.inMilliseconds >
+              (s1.end.inMilliseconds + deltaMs)) {
             break;
           }
         }
 
-        if (!beMerged) {
-          mergedSubtitles.add(s1.copyWith(index: index++));
+        if (mergedS2.isEmpty) {
+          mergedSubtitles.add(s1);
+        } else {
+          mergedSubtitles.add(s1.copyWith(index: index++, data: mergedS2));
         }
       });
-
-      for (; targetIndex < targetSubtitles.length; targetIndex++) {
-        mergedSubtitles.add(
-            targetSubtitles.elementAt(targetIndex).copyWith(index: index++));
-      }
     }
 
     var controller = SubtitleController(

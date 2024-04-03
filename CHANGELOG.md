@@ -24,3 +24,7 @@
     - **CustomRegex:** User define regexp.
 - **SubtitleObject:** Store the subtitle file data and its format type.
 - Initial version, created by [MuhmdHsn313](https://twitter.com/MuhmdHsn313)
+
+## 0.1.1
+
+- add merge method

@@ -2,14 +2,6 @@ import 'package:subtitle/subtitle.dart';
 
 const vttData = '''WEBVTT FILE
 
-5
-00:00:19.000 --> 00:00:24.000
-Which is why we are bringing TV, internet and phone together in <c.highlight>one</c> super package
-
-3
-00:00:11.000 --> 00:00:14.000 A:end
-Phone conversations where people truly <c.highlight>connect</c>
-
 1
 00:00:03.500 --> 00:00:05.000 D:vertical A:start
 Everyone wants the most from life
@@ -18,10 +10,17 @@ Everyone wants the most from life
 00:00:06.000 --> 00:00:09.000 A:start
 Like internet experiences that are rich <b>and</b> entertaining
 
+3
+00:00:11.000 --> 00:00:14.000 A:end
+Phone conversations where people truly <c.highlight>connect</c>
 
 4
 00:00:14.500 --> 00:00:18.000
 Your favourite TV programmes ready to watch at the touch of a button
+
+5
+00:00:19.000 --> 00:00:24.000
+Which is why we are bringing TV, internet and phone together in <c.highlight>one</c> super package
 
 6
 00:00:24.500 --> 00:00:26.000
@@ -70,10 +69,10 @@ const ttmlText = '''
   </head>
   <body region="subtitleArea">
     <div>
-      <p xml:id="subtitle1" begin="0.76s" end="3.45s">
+      <p xml:id="subtitle1" begin="3.76s" end="4.45s">
         It seems a paradox, does it not,
       </p>
-      <p xml:id="subtitle2" begin="5.0s" end="10.0s">
+      <p xml:id="subtitle2" begin="5.9s" end="10.0s">
         that the image formed on<br/>
         the Retina should be inverted?
       </p>
@@ -88,6 +87,18 @@ const ttmlText = '''
       </p>
       <p xml:id="subtitle6" begin="24.5s" end="27.0s" style="s2">
         ##### No indeed! What a beautiful fact! #####
+      </p>
+      <p xml:id="subtitle7" begin="28.0s" end="28.2s" style="s2">
+        A
+      </p>
+      <p xml:id="subtitle8" begin="28.4s" end="28.8s" style="s2">
+        B
+      </p>
+      <p xml:id="subtitle8" begin="29.0s" end="29.2s" style="s2">
+        C
+      </p>
+      <p xml:id="subtitle9" begin="29.3s" end="29.8s" style="s2">
+        D
       </p>
     </div>
   </body>
