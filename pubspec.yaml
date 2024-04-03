@@ -2,7 +2,7 @@ name: subtitle
 description: ->
   A library that makes it easy to work with multiple subtitle/caption file formats,
   written with highly efficient code, highly customizable (90%), supports Null Safety.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/dsc-uob/subtitle
 issue_tracker: https://github.com/dsc-uob/subtitle/issues
 documentation: https://github.com/dsc-uob/subtitle/wiki

@@ -87,12 +87,11 @@ class SubtitleController extends ISubtitleController {
       mergedSubtitles = targetSubtitles;
     } else {
       srcSubtitles.forEach((s1) {
-        var beMerged = false;
         var mergedS2 = '';
-        for (; targetIndex < targetSubtitles.length; targetIndex++) {
+        for (targetIndex = 0; targetIndex < targetSubtitles.length; targetIndex++) {
           var s2 = targetSubtitles.elementAt(targetIndex);
 
-          if ((s2.end.inMilliseconds - deltaMs) <= s1.start.inMilliseconds) {
+          if ((s2.end.inMilliseconds - deltaMs) < s1.start.inMilliseconds) {
             continue;
           } else if ((s1.start.inMilliseconds - deltaMs) <=
                   s2.start.inMilliseconds &&

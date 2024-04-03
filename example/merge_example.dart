@@ -128,7 +128,7 @@ void main(List<String> args) async {
   printResult(ttmlController.subtitles);
 
   var mergedController =
-      await SubtitleController.merge(vttController, ttmlController, deltaMs: 100);
+      await SubtitleController.merge(ttmlController, vttController, deltaMs: 100);
   print('\n\n======= after merged =======');
   printResult(mergedController.subtitles);
 }

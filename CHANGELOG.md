@@ -28,3 +28,7 @@
 ## 0.1.1
 
 - add merge method
+
+## 0.1.2
+
+- refactor merge method
