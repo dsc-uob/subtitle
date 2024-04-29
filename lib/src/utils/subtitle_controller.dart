@@ -95,7 +95,10 @@ class SubtitleController extends ISubtitleController {
             continue;
           } else if ((s1.start.inMilliseconds - deltaMs) <=
                   s2.start.inMilliseconds &&
-              s2.end.inMilliseconds <= (s1.end.inMilliseconds + deltaMs)) {
+              s2.start.inMilliseconds <= (s1.end.inMilliseconds + deltaMs) ||
+              (s1.start.inMilliseconds - deltaMs) <=
+                  s2.end.inMilliseconds &&
+                  s2.end.inMilliseconds <= (s1.end.inMilliseconds + deltaMs)) {
             if (mergedS2.isEmpty) {
               mergedS2 = '${s1.data}$joinWith${s2.data}';
             } else {

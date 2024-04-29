@@ -32,3 +32,7 @@
 ## 0.1.2
 
 - refactor merge method
+
+## 0.1.3
+
+- upgrade dependencies path
