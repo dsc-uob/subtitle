@@ -36,3 +36,7 @@
 ## 0.1.3
 
 - upgrade dependencies path
+
+## 0.1.4
+
+- resolve dependencies issue
