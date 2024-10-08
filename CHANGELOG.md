@@ -1,3 +1,8 @@
+## 0.1.3
+- Solved issue with StringSubtitle, see #16 for more.
+- Added dispose for SubtitleController, see #11 for more.
+- Solved issues #9 and #4 in #12, thanks for (@fadone).
+
 ## 0.1.0
 - Addressed an issue with subtitle parsing (srt) that was affecting certain cases. This contribution is credited to @sahanForaty. Refer to issue #6.
 - Resolved a network subtitle problem, contributed by @thecarry98. See issue #8.
