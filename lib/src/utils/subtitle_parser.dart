@@ -31,7 +31,7 @@ abstract class ISubtitleParser {
 /// Usable class to parsing subtitle file. It is used to analyze and convert subtitle
 /// files into software objects that are viewable and usable.
 class SubtitleParser extends ISubtitleParser {
-  const SubtitleParser(SubtitleObject object) : super(object);
+  const SubtitleParser(super.object);
 
   @override
   SubtitleRegexObject get regexObject {
@@ -56,7 +56,8 @@ class SubtitleParser extends ISubtitleParser {
     final pattern = regexObject.pattern;
 
     var regExp = RegExp(pattern);
-    var matches = regExp.allMatches(object.data.replaceAll('\r', ''));
+    var matches = regExp
+        .allMatches(object.data.replaceAll('\r', '').replaceAll('\r\n', '\n'));
 
     return _decodeSubtitleFormat(
       matches,
@@ -81,11 +82,15 @@ class SubtitleParser extends ISubtitleParser {
         index = int.parse(matcher.group(1) ?? '${i + 1}');
       }
 
-      final nonNormalizedText =
-          ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)
-                  ? matcher.group(9)?.trim()
-                  : matcher.group(10)?.trim()) ??
-              '';
+      String nonNormalizedText = '';
+      if ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)) {
+        nonNormalizedText = matcher.group(9)?.trim() ?? '';
+      } else {
+        nonNormalizedText = matcher.group(10)?.trim() ?? '';
+        if (nonNormalizedText == '') {
+          nonNormalizedText = matcher.group(11)?.trim() ?? '';
+        }
+      }
 
       final normalizedText = shouldNormalizeText
           ? normalize(nonNormalizedText)

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import '../core/exceptions.dart';
 import '../core/models.dart';
 import 'subtitle_parser.dart';
@@ -18,10 +20,15 @@ abstract class ISubtitleController {
   /// The parser class, maybe still null if you are not initial the controller.
   ISubtitleParser? _parser;
 
+  // For detect if controller disposed.
+  late bool _isDisposed;
+
   ISubtitleController({
     required SubtitleProvider provider,
   })  : _provider = provider,
-        subtitles = List.empty(growable: true);
+        subtitles = List.empty(growable: true) {
+    _isDisposed = false;
+  }
 
   //! Getters
 
@@ -45,12 +52,23 @@ abstract class ISubtitleController {
   List<Subtitle> multiDurationSearch(Duration duration);
 
   //! Virual methods
+  @mustCallSuper
   Future<void> initial() async {
+    if (_isDisposed) {
+      throw ControllerDisposedException();
+    }
     if (initialized) return;
     final providerObject = await _provider.getSubtitle();
     _parser = SubtitleParser(providerObject);
     subtitles.addAll(_parser!.parsing());
     sort();
+  }
+
+  @mustCallSuper
+  Future<void> dispose() async {
+    subtitles.clear();
+    _parser = null;
+    _isDisposed = true;
   }
 
   /// Sort all subtitles object from smaller duration to larger duration.
@@ -65,8 +83,8 @@ abstract class ISubtitleController {
 /// [ISubtitleController] to create your custom.
 class SubtitleController extends ISubtitleController {
   SubtitleController({
-    required SubtitleProvider provider,
-  }) : super(provider: provider);
+    required super.provider,
+  });
 
   /// Fetch your current single subtitle value by providing the duration.
   @override
