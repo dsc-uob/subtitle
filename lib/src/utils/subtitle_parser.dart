@@ -61,12 +61,7 @@ class SubtitleParser extends ISubtitleParser {
     var cleanedData = object.data.replaceAll('\r', '').replaceAll('\r\n', '\n');
 
     var matches = regExp.allMatches(cleanedData);
-    for (var match in matches) {
-      /// print all groups
-      for (var i = 0; i <= match.groupCount; i++) {
-        print('Group $i: ${match.group(i)}');
-      }
-    }
+
     return _decodeSubtitleFormat(
       matches,
       regexObject.type,
