@@ -22,8 +22,10 @@ abstract class ISubtitleParser {
   /// Normalize the text data of subtitle, remove unnecessary characters.
   String normalize(String txt) {
     return txt
-        .replaceAll(RegExp(r'<\/?[\w.]+\/?>|\n| {2,}'), ' ')
+        .replaceAll(RegExp(r'<\/?[\w.]+\/?>| {2,}'), ' ')
         .replaceAll(RegExp(r' {2,}'), ' ')
+        // Remove multiple new lines
+        .replaceAll(RegExp(r'\n{2,}'), '\n')
         .trim();
   }
 }
@@ -56,9 +58,15 @@ class SubtitleParser extends ISubtitleParser {
     final pattern = regexObject.pattern;
 
     var regExp = RegExp(pattern);
-    var matches = regExp
-        .allMatches(object.data.replaceAll('\r', '').replaceAll('\r\n', '\n'));
+    var cleanedData = object.data.replaceAll('\r', '').replaceAll('\r\n', '\n');
 
+    var matches = regExp.allMatches(cleanedData);
+    for (var match in matches) {
+      /// print all groups
+      for (var i = 0; i <= match.groupCount; i++) {
+        print('Group $i: ${match.group(i)}');
+      }
+    }
     return _decodeSubtitleFormat(
       matches,
       regexObject.type,

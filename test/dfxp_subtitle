@@ -1,0 +1,13 @@
+<details> <summary>Sample DFXP/TTML content</summary>
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml">
+  <body>
+    <div>
+      <p begin="00:00:00.500" end="00:00:02.000">Hello from DFXP</p>
+      <p begin="00:00:02.000" end="00:00:04.000">Still the same TTML style</p>
+    </div>
+  </body>
+</tt>
+</details>

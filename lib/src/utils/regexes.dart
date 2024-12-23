@@ -105,7 +105,7 @@ class SrtRegex extends SubtitleRegexObject {
 /// dart code.
 class TtmlRegex extends SubtitleRegexObject {
   static const String _regex =
-      r'<p[\w\d:="\s]+?begin="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?"[\w\d:="\s]+end="(\d{1,}:)?(\d{1,}:)?(\d{1,}).(\d{1,})s?"[\w\d:="\s]*>(\D+)<\/p>';
+      r'<p[\w\d:="\s]+?begin="(\d{1,}):?(\d{1,}):?(\d{1,}).(\d{1,})s?"[\w\d:="\s]+end="(\d{1,}):?(\d{1,}):?(\d{1,}).(\d{1,})s?"[\w\d:="\s]*>(\D+)<\/p>';
   const TtmlRegex()
       : super(
           pattern: _regex,
