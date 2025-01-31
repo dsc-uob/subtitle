@@ -24,7 +24,7 @@ void main() {
       expect(subtitles[0].index, 1);
       expect(subtitles[0].start.toString(), '0:00:02.250000');
       expect(subtitles[0].end.toString(), '0:00:03.509000');
-      expect(subtitles[0].data, 'Why am I here?');
+      expect(subtitles[0].data, 'Why am I\nhere?');
 
       expect(subtitles[9].index, 10);
       expect(subtitles[9].start.toString(), '0:00:16.729000');

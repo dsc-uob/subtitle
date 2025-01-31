@@ -1,0 +1,11 @@
+1
+00:00:00,000 --> 00:00:01,000
+Hello world!
+
+2
+00:00:01,001 --> 00:00:03,500
+This is a test for SRT subtitle format.
+
+3
+00:00:03,600 --> 00:00:05,000
+Subtitle parsing is fun!
