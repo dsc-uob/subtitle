@@ -1,3 +1,9 @@
+## 0.1.4
+- Fix: Resolved issues related to new line handling in subtitle parsers.
+- Test: Added comprehensive tests for all subtitle formats. (#18)
+- Fix: Corrected regex handling for ttml_subtitle to ensure proper parsing.
+- Improvement: Adjusted parsers to maintain \n consistency, aligning with VTT and SRT styles as intended by subtitle authors.
+
 ## 0.1.3
 - Solved issue with StringSubtitle, see #16 for more.
 - Added dispose for SubtitleController, see #11 for more.
