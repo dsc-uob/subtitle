@@ -89,9 +89,17 @@ class SubtitleParser extends ISubtitleParser {
       if ([SubtitleType.ttml, SubtitleType.dfxp].contains(type)) {
         nonNormalizedText = matcher.group(9)?.trim() ?? '';
       } else {
-        nonNormalizedText = matcher.group(10)?.trim() ?? '';
-        if (nonNormalizedText == '') {
+        var group10 = matcher.group(10)?.trim() ?? '';
+        // For VTT format, group 10 may contain positioning/styling directives
+        // If it contains VTT directives, skip it and use group 11 instead
+        if (type == SubtitleType.vtt && group10.isNotEmpty && 
+            RegExp(r'\s*(?:line|align|position|size|region|vertical):').hasMatch(group10)) {
           nonNormalizedText = matcher.group(11)?.trim() ?? '';
+        } else {
+          nonNormalizedText = group10;
+          if (nonNormalizedText == '') {
+            nonNormalizedText = matcher.group(11)?.trim() ?? '';
+          }
         }
       }
 
