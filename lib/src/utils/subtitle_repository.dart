@@ -1,9 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:universal_io/io.dart';
 
 import '../core/exceptions.dart';
+
+void _log(String msg, {Object? error, StackTrace? stack, int level = 800}) {
+  dev.log(msg, name: 'subtitle', error: error, stackTrace: stack, level: level);
+}
 
 /// A response class of HTTP request.
 class Response {
@@ -43,34 +48,44 @@ abstract class ISubtitleRepository {
     bool Function(X509Certificate cert, String host, int port)?
         badCertificateCallback,
   }) async {
-    // Create a new HTTP client instance
+    _log('GET $url'
+        ' scheme="${url.scheme}" host="${url.host}"'
+        ' ext="${url.path.contains('.') ? url.path.substring(url.path.lastIndexOf('.')) : ''}"'
+        ' headers=${headers?.keys.toList() ?? const <String>[]}');
     final client = HttpClient();
-
-    // Set the options of this HTTP client
     client.connectionTimeout = connectionTimeout;
     client.badCertificateCallback = badCertificateCallback;
-    final request = await client.getUrl(url);
-    if (headers != null) {
-      headers.forEach((name, value) {
-        request.headers.add(name, value);
-      });
+    try {
+      final request = await client.getUrl(url);
+      if (headers != null) {
+        headers.forEach((name, value) {
+          request.headers.add(name, value);
+        });
+      }
+
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      client.close(force: true);
+
+      _log('GET $url -> status=${response.statusCode} bytes=${responseBody.length}');
+      if (responseBody.isNotEmpty) {
+        final head = responseBody.length > 64
+            ? responseBody.substring(0, 64)
+            : responseBody;
+        _log('body head: ${head.replaceAll('\n', r'\n')}');
+      }
+
+      return Response(
+        statusCode: response.statusCode,
+        body: responseBody,
+        bodyBytes: responseBody.codeUnits,
+      );
+    } catch (e, st) {
+      client.close(force: true);
+      _log('GET $url threw', error: e, stack: st, level: 1000);
+      rethrow;
     }
-
-    // Start the HTTP request
-    final response = await request.close();
-
-    // Decode the body
-    final responseBody = await response.transform(utf8.decoder).join();
-
-    // Close the client
-    client.close(force: true);
-
-    // Return a resutl
-    return Response(
-      statusCode: response.statusCode,
-      body: responseBody,
-      bodyBytes: responseBody.codeUnits,
-    );
   }
 }
 
@@ -105,6 +120,8 @@ class SubtitleRepository extends ISubtitleRepository {
       return response.body;
     }
 
+    _log('fetchFromNetwork: bad status ${response.statusCode} for $url',
+        level: 1000);
     throw ErrorInternetFetchingSubtitle(response.statusCode, response.body);
   }
 

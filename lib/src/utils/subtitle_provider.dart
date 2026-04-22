@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import 'package:path/path.dart' show extension;
 import 'package:universal_io/io.dart';
@@ -6,6 +7,10 @@ import 'package:universal_io/io.dart';
 import '../core/exceptions.dart';
 import '../utils/types.dart';
 import 'subtitle_repository.dart';
+
+void _log(String msg, {Object? error, StackTrace? stack, int level = 800}) {
+  dev.log(msg, name: 'subtitle', error: error, stackTrace: stack, level: level);
+}
 
 /// Base class of subtitle providers. It was created to
 /// simplify fetching subtitle file data from multiple sources.
@@ -123,6 +128,7 @@ abstract class SubtitleProvider {
       case 'dfxp':
         return SubtitleType.dfxp;
       default:
+        _log('getSubtitleType: unsupported extension "$ext"', level: 1000);
         throw UnsupportedSubtitleFormat();
     }
   }
@@ -165,7 +171,8 @@ class NetworkSubtitle extends SubtitleProvider {
 
   @override
   Future<SubtitleObject> getSubtitle() async {
-    // Preparing subtitle file data.
+    _log('NetworkSubtitle.getSubtitle: url=$url typeHint=$type'
+        ' scheme="${url.scheme}" host="${url.host}" path="${url.path}"');
     final repository = SubtitleRepository.inctance;
     final data = await repository.fetchFromNetwork(
       url,
@@ -175,11 +182,12 @@ class NetworkSubtitle extends SubtitleProvider {
       badCertificateCallback: badCertificateCallback,
     );
 
-    // Find the current format type of subtitle.
     final ext = extension(url.path);
-    final type = this.type ?? getSubtitleType(ext);
+    final resolved = type ?? getSubtitleType(ext);
+    _log('NetworkSubtitle.getSubtitle: resolved type=$resolved ext="$ext"'
+        ' bodyBytes=${data.length}');
 
-    return SubtitleObject(data: data, type: type);
+    return SubtitleObject(data: data, type: resolved);
   }
 }
 

@@ -1,7 +1,13 @@
+import 'dart:developer' as dev;
+
 import '../core/exceptions.dart';
 import '../core/models.dart';
 import 'regexes.dart';
 import 'types.dart';
+
+void _log(String msg, {int level = 800}) {
+  dev.log(msg, name: 'subtitle', level: level);
+}
 
 /// It is used to analyze and convert subtitle files into software objects that are
 /// viewable and usable. The base class of [SubtitleParser], you can create your
@@ -61,6 +67,18 @@ class SubtitleParser extends ISubtitleParser {
     var cleanedData = object.data.replaceAll('\r', '').replaceAll('\r\n', '\n');
 
     var matches = regExp.allMatches(cleanedData);
+    final matchCount = matches.length;
+    if (matchCount == 0) {
+      final head = cleanedData.length > 64
+          ? cleanedData.substring(0, 64)
+          : cleanedData;
+      _log('parsing: 0 matches for type=${object.type}'
+          ' bodyBytes=${cleanedData.length}'
+          ' head="${head.replaceAll('\n', r'\n')}"',
+          level: 1000);
+    } else {
+      _log('parsing: $matchCount matches for type=${object.type}');
+    }
 
     return _decodeSubtitleFormat(
       matches,
