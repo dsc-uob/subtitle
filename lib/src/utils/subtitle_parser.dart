@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import '../core/exceptions.dart';
 import '../core/models.dart';
 import 'regexes.dart';
@@ -17,7 +19,7 @@ abstract class ISubtitleParser {
 
   /// Abstract method parsing the data from any format and return it as a list of
   /// subtitles.
-  List<Subtitle> parsing();
+  Future<List<Subtitle>> parsing();
 
   /// Normalize the text data of subtitle, remove unnecessary characters.
   String normalize(String txt) {
@@ -52,21 +54,22 @@ class SubtitleParser extends ISubtitleParser {
   }
 
   @override
-  List<Subtitle> parsing({
+  Future<List<Subtitle>> parsing({
     bool shouldNormalizeText = true,
-  }) {
+  }) async {
     /// Stored variable for subtitles.
     final pattern = regexObject.pattern;
-
     var regExp = RegExp(pattern);
     var cleanedData = object.data.replaceAll('\r', '').replaceAll('\r\n', '\n');
 
     var matches = regExp.allMatches(cleanedData);
 
-    return _decodeSubtitleFormat(
-      matches,
-      regexObject.type,
-      shouldNormalizeText,
+    return await Isolate.run(
+      () => _decodeSubtitleFormat(
+        matches,
+        regexObject.type,
+        shouldNormalizeText,
+      ),
     );
   }
 
@@ -188,10 +191,11 @@ class CustomSubtitleParser extends ISubtitleParser {
   }) : super(object);
 
   @override
-  List<Subtitle> parsing() {
+  Future<List<Subtitle>> parsing() async {
     var regExp = RegExp(regexObject.pattern);
-    var matches = regExp.allMatches(object.data);
-    return onParsing(matches);
+    final data = object.data;
+    var matches = regExp.allMatches(data);
+    return await Isolate.run(() => onParsing(matches));
   }
 
   @override

@@ -52,7 +52,7 @@ void main(List<String> args) async {
     type: SubtitleType.vtt,
   );
   var parser = SubtitleParser(object);
-  printResult(parser.parsing());
+  printResult(await parser.parsing());
 }
 
 void printResult(List<Subtitle> subtitles) {

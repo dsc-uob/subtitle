@@ -60,7 +60,7 @@ abstract class ISubtitleController {
     if (initialized) return;
     final providerObject = await _provider.getSubtitle();
     _parser = SubtitleParser(providerObject);
-    subtitles.addAll(_parser!.parsing());
+    subtitles.addAll(await _parser!.parsing());
     sort();
   }
 
