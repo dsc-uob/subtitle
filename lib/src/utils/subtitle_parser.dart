@@ -21,11 +21,12 @@ abstract class ISubtitleParser {
 
   /// Normalize the text data of subtitle, remove unnecessary characters.
   String normalize(String txt) {
+    if (txt.isEmpty) return txt;
+
     return txt
-        .replaceAll(RegExp(r'<\/?[\w.]+\/?>| {2,}'), ' ')
-        .replaceAll(RegExp(r' {2,}'), ' ')
-        // Remove multiple new lines
-        .replaceAll(RegExp(r'\n{2,}'), '\n')
+        .replaceAll(NormalizerRegex.cleaning, ' ')
+        .replaceAll(NormalizerRegex.whitespace, ' ')
+        .replaceAll(NormalizerRegex.whitespace, '\n')
         .trim();
   }
 }

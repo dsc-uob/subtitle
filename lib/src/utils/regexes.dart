@@ -124,3 +124,9 @@ class CustomRegex extends SubtitleRegexObject {
           type: SubtitleType.custom,
         );
 }
+
+abstract class NormalizerRegex {
+  static final RegExp cleaning = RegExp(r'<[^>]*>');
+  static final RegExp whitespace = RegExp(r' {2,}');
+  static final RegExp multiline = RegExp(r'\n{2,}');
+}
