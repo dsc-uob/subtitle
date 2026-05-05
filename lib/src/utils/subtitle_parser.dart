@@ -60,6 +60,14 @@ class SubtitleParser extends ISubtitleParser {
   List<Subtitle> parsing({
     bool shouldNormalizeText = true,
   }) {
+    // VTT/SRT use a line-oriented format that the cue-block parser
+    // handles in O(n) time. The previous regex-backed implementation
+    // had nested unbounded quantifiers and could backtrack for tens of
+    // seconds on pathological inputs (e.g. 10k+ cue karaoke VTTs).
+    if (object.type == SubtitleType.vtt || object.type == SubtitleType.srt) {
+      return _parseCueBlocks(shouldNormalizeText);
+    }
+
     /// Stored variable for subtitles.
     final pattern = regexObject.pattern;
 
@@ -87,6 +95,125 @@ class SubtitleParser extends ISubtitleParser {
     );
   }
 
+  /// Hand-rolled cue-block parser for VTT and SRT. Splits the file
+  /// into blocks separated by blank lines, then for each block:
+  ///
+  ///   1. Locates the timing line (the line containing `-->`).
+  ///   2. Pulls start/end timestamps from the front of that line.
+  ///       Anything after the end timestamp on the timing line is VTT
+  ///       positioning (`line:`, `align:`, `position:`, …) and is
+  ///       ignored.
+  ///   3. Joins every following non-blank line as the cue text.
+  ///
+  /// Compared to the regex path, this:
+  ///   - Never backtracks. Big files parse in linear time.
+  ///   - Handles VTT positioning directives without group-juggling.
+  ///   - Skips orphan blocks (header, NOTE, STYLE, malformed cues)
+  ///     instead of failing the whole parse.
+  List<Subtitle> _parseCueBlocks(bool shouldNormalizeText) {
+    final cleaned =
+        object.data.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    final lines = cleaned.split('\n');
+
+    final result = <Subtitle>[];
+    var index = 1;
+    var i = 0;
+
+    while (i < lines.length) {
+      // Skip blank lines between blocks.
+      while (i < lines.length && lines[i].trim().isEmpty) {
+        i++;
+      }
+      if (i >= lines.length) break;
+
+      // Collect the next non-blank block (up to the next blank line).
+      final blockStart = i;
+      while (i < lines.length && lines[i].trim().isNotEmpty) {
+        i++;
+      }
+      final block = lines.sublist(blockStart, i);
+
+      // Find the timing line (first line containing `-->`).
+      var arrowLine = -1;
+      for (var k = 0; k < block.length; k++) {
+        if (block[k].contains('-->')) {
+          arrowLine = k;
+          break;
+        }
+      }
+      if (arrowLine < 0) {
+        // Header (WEBVTT), NOTE, STYLE, or stray text — drop the block.
+        continue;
+      }
+
+      final timing = _parseTimingLine(block[arrowLine]);
+      if (timing == null) continue;
+
+      final textParts = block.sublist(arrowLine + 1);
+      var text = textParts.join('\n');
+      if (shouldNormalizeText) text = normalize(text);
+
+      result.add(Subtitle(
+        start: timing.start,
+        end: timing.end,
+        data: text,
+        index: index++,
+      ));
+    }
+
+    if (result.isEmpty) {
+      final head =
+          cleaned.length > 64 ? cleaned.substring(0, 64) : cleaned;
+      _log('parsing: 0 cues for type=${object.type}'
+          ' bodyBytes=${cleaned.length}'
+          ' head="${head.replaceAll('\n', r'\n')}"',
+          level: 1000);
+    } else {
+      _log('parsing: ${result.length} cues for type=${object.type}');
+    }
+    return result;
+  }
+
+  /// Pulls `(start, end)` durations out of a VTT/SRT timing line.
+  /// Accepts either `.` or `,` as the millisecond separator and an
+  /// optional hour component. Returns null if the line doesn't match.
+  static final RegExp _timingRegex = RegExp(
+    r'((?:\d{1,3}:)?\d{1,2}:\d{2}[.,]\d{1,3})\s*-->\s*((?:\d{1,3}:)?\d{1,2}:\d{2}[.,]\d{1,3})',
+  );
+
+  _Timing? _parseTimingLine(String line) {
+    final m = _timingRegex.firstMatch(line);
+    if (m == null) return null;
+    final start = _parseTimestamp(m.group(1)!);
+    final end = _parseTimestamp(m.group(2)!);
+    if (start == null || end == null) return null;
+    return _Timing(start, end);
+  }
+
+  Duration? _parseTimestamp(String raw) {
+    final t = raw.replaceAll(',', '.');
+    final dotIdx = t.lastIndexOf('.');
+    if (dotIdx < 0) return null;
+    final ms = int.tryParse(t.substring(dotIdx + 1).padRight(3, '0'));
+    final hms = t.substring(0, dotIdx).split(':');
+    if (ms == null || hms.length < 2 || hms.length > 3) return null;
+    int hours = 0, minutes = 0, seconds = 0;
+    if (hms.length == 3) {
+      hours = int.tryParse(hms[0]) ?? 0;
+      minutes = int.tryParse(hms[1]) ?? 0;
+      seconds = int.tryParse(hms[2]) ?? 0;
+    } else {
+      minutes = int.tryParse(hms[0]) ?? 0;
+      seconds = int.tryParse(hms[1]) ?? 0;
+    }
+    return Duration(
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: ms,
+    );
+  }
+
   /// Parsing subtitle formats to subtitle and store it in [_subtitles] field.
   List<Subtitle> _decodeSubtitleFormat(
     Iterable<RegExpMatch> matches,
@@ -110,7 +237,7 @@ class SubtitleParser extends ISubtitleParser {
         var group10 = matcher.group(10)?.trim() ?? '';
         // For VTT format, group 10 may contain positioning/styling directives
         // If it contains VTT directives, skip it and use group 11 instead
-        if (type == SubtitleType.vtt && group10.isNotEmpty && 
+        if (type == SubtitleType.vtt && group10.isNotEmpty &&
             RegExp(r'\s*(?:line|align|position|size|region|vertical):').hasMatch(group10)) {
           nonNormalizedText = matcher.group(11)?.trim() ?? '';
         } else {
@@ -191,6 +318,12 @@ class SubtitleParser extends ISubtitleParser {
       milliseconds: milliseconds,
     );
   }
+}
+
+class _Timing {
+  final Duration start;
+  final Duration end;
+  const _Timing(this.start, this.end);
 }
 
 /// Used in [CustomSubtitleParser] to comstmize parsing of subtitles.
