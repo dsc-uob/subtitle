@@ -56,4 +56,18 @@ class Subtitle {
   String toString() => '$start --> $end\n$data';
 
   List<Object> get props => [start, end, data, index];
+
+  Subtitle copyWith({
+    int? index,
+    String? data,
+    Duration? start,
+    Duration? end,
+  }) {
+    return Subtitle(
+      start: start ?? this.start,
+      end: end ?? this.end,
+      data: data ?? this.data,
+      index: index ?? this.index,
+    );
+  }
 }

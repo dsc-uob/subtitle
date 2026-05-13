@@ -16,6 +16,11 @@ abstract class ISubtitleController {
   /// Store the subtitles objects after decoded.
   final List<Subtitle> subtitles;
 
+  /// `_prefixMaxEndMs[i]` = max end (ms) across `subtitles[0..i]`. Used by
+  /// [multiDurationSearch] to terminate its backward walk early without
+  /// scanning all cues.
+  List<int> _prefixMaxEndMs = const [];
+
   //! Later and Nullable fields
   /// The parser class, maybe still null if you are not initial the controller.
   ISubtitleParser? _parser;
@@ -62,17 +67,96 @@ abstract class ISubtitleController {
     _parser = SubtitleParser(providerObject);
     subtitles.addAll(_parser!.parsing());
     sort();
+    _cleanupDuplicates();
+    _buildPrefixMaxEnd();
   }
 
   @mustCallSuper
   Future<void> dispose() async {
     subtitles.clear();
+    _prefixMaxEndMs = const [];
     _parser = null;
     _isDisposed = true;
   }
 
   /// Sort all subtitles object from smaller duration to larger duration.
   void sort() => subtitles.sort((s1, s2) => s1.compareTo(s2));
+
+  /// Collapses pathological cue patterns produced by karaoke-style VTTs
+  /// where every word is emitted as a separate cue sharing the same
+  /// `(start, end)` as the full-sentence cue.
+  ///
+  /// Two passes:
+  ///   1. Within a run of cues sharing identical `(start, end)`, keep only
+  ///      the cue with the longest text.
+  ///   2. Coalesce consecutive cues with identical text whose gap is ≤ 50 ms.
+  ///
+  /// Legitimate, non-overlapping cues with distinct text are untouched.
+  void _cleanupDuplicates() {
+    if (subtitles.length < 2) return;
+
+    final originalCount = subtitles.length;
+
+    // Pass 1: same start+end → keep the cue with the longest text.
+    final dedupedByRange = <Subtitle>[];
+    var i = 0;
+    while (i < subtitles.length) {
+      var bestIdx = i;
+      var bestLen = subtitles[i].data.length;
+      var j = i + 1;
+      while (j < subtitles.length &&
+          subtitles[j].start == subtitles[i].start &&
+          subtitles[j].end == subtitles[i].end) {
+        if (subtitles[j].data.length > bestLen) {
+          bestLen = subtitles[j].data.length;
+          bestIdx = j;
+        }
+        j++;
+      }
+      dedupedByRange.add(subtitles[bestIdx]);
+      i = j;
+    }
+
+    // Pass 2: merge contiguous cues with identical text (gap ≤ 50 ms).
+    const mergeGap = Duration(milliseconds: 50);
+    final merged = <Subtitle>[];
+    for (final cue in dedupedByRange) {
+      if (merged.isNotEmpty &&
+          merged.last.data == cue.data &&
+          cue.start - merged.last.end <= mergeGap) {
+        final prev = merged.last;
+        merged[merged.length - 1] = prev.copyWith(
+          end: cue.end > prev.end ? cue.end : prev.end,
+        );
+      } else {
+        merged.add(cue);
+      }
+    }
+
+    if (merged.length < originalCount) {
+      subtitles
+        ..clear()
+        ..addAll(merged);
+    }
+  }
+
+  /// Builds the prefix max-end array used by [multiDurationSearch] to
+  /// terminate its backward walk early.
+  void _buildPrefixMaxEnd() {
+    final n = subtitles.length;
+    if (n == 0) {
+      _prefixMaxEndMs = const [];
+      return;
+    }
+    final arr = List<int>.filled(n, 0);
+    var running = 0;
+    for (var i = 0; i < n; i++) {
+      final endMs = subtitles[i].end.inMilliseconds;
+      if (endMs > running) running = endMs;
+      arr[i] = running;
+    }
+    _prefixMaxEndMs = arr;
+  }
 
   /// Get all subtitles as a single string, you can separate between subtitles
   /// using `separator`, the default is `, `.
@@ -126,14 +210,50 @@ class SubtitleController extends ISubtitleController {
     return -1;
   }
 
+  /// Returns every cue active at [duration] in O(log n + k) time, where k is
+  /// the number of matches.
+  ///
+  /// Strategy:
+  ///   1. Use an upper-bound binary search to locate the first cue whose
+  ///      `start` is strictly greater than [duration].  All cues at or before
+  ///      that index are candidates (their start ≤ duration).
+  ///   2. Walk backwards from that index collecting cues where `inRange` is
+  ///      true.  The precomputed `_prefixMaxEndMs` array lets us stop as soon
+  ///      as the maximum end time seen so far is before [duration], meaning
+  ///      no remaining cue can possibly be active.
   @override
   List<Subtitle> multiDurationSearch(Duration duration) {
-    var correctSubtitles = List<Subtitle>.empty(growable: true);
+    if (subtitles.isEmpty) return const [];
 
-    for (var value in subtitles) {
-      if (value.inRange(duration)) correctSubtitles.add(value);
+    final durationMs = duration.inMilliseconds;
+
+    // Upper-bound binary search: find the first index where start > duration.
+    var lo = 0;
+    var hi = subtitles.length; // exclusive upper bound
+    while (lo < hi) {
+      final mid = lo + (hi - lo) ~/ 2;
+      if (subtitles[mid].start <= duration) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    // All cues in [0, lo) have start ≤ duration; start from lo-1.
+    var idx = lo - 1;
+
+    final result = <Subtitle>[];
+    while (idx >= 0) {
+      // Early termination: if the max end time in [0..idx] is before duration,
+      // no cue in this prefix can be active.
+      if (_prefixMaxEndMs[idx] < durationMs) break;
+
+      if (subtitles[idx].inRange(duration)) {
+        result.add(subtitles[idx]);
+      }
+      idx--;
     }
 
-    return correctSubtitles;
+    // Reverse so results are in chronological order.
+    return result.reversed.toList();
   }
 }
