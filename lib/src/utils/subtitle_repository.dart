@@ -59,17 +59,28 @@ abstract class ISubtitleRepository {
     // Start the HTTP request
     final response = await request.close();
 
-    // Decode the body
-    final responseBody = await response.transform(utf8.decoder).join();
+    // Collect raw bytes so we can attempt multiple decodings.
+    final bytes = <int>[];
+    await for (final chunk in response) {
+      bytes.addAll(chunk);
+    }
 
     // Close the client
     client.close(force: true);
 
-    // Return a resutl
+    // Decode as UTF-8; fall back to Latin-1 for legacy encodings.
+    String responseBody;
+    try {
+      responseBody = utf8.decode(bytes, allowMalformed: false);
+    } catch (_) {
+      responseBody = latin1.decode(bytes);
+    }
+
+    // Return a result
     return Response(
       statusCode: response.statusCode,
       body: responseBody,
-      bodyBytes: responseBody.codeUnits,
+      bodyBytes: bytes,
     );
   }
 }
@@ -110,7 +121,12 @@ class SubtitleRepository extends ISubtitleRepository {
 
   /// Load the subtitles from specific file.
   @override
-  Future<String> fetchFromFile(File file) {
-    return file.readAsString();
+  Future<String> fetchFromFile(File file) async {
+    final bytes = await file.readAsBytes();
+    try {
+      return utf8.decode(bytes, allowMalformed: false);
+    } catch (_) {
+      return latin1.decode(bytes);
+    }
   }
 }
