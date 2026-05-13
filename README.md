@@ -1,13 +1,19 @@
 # Subtitle
-A library that makes it easy to work with multiple translation file formats, written with highly efficient code, 
+A library that makes it easy to work with multiple subtitle/caption file formats, written with highly efficient code,
 highly customizable (90%), supports **Sound Null Safety**.
 
 ### Currently supported formats:
-- WebVTT
+- WebVTT (including named cue identifiers and positioning directives)
 - SRT (SubRip)
 - TTML (Timed Text Markup Language)
 - DFXP (Distribution Format Exchange Profile)
 - Custom Subtitle Format
+
+### Highlights
+- **Line-based VTT/SRT parser** — no backtracking; handles large karaoke-style files in milliseconds.
+- **O(log n + k) multi-cue search** via binary upper-bound + prefix-max-end array.
+- **Automatic cue deduplication** — collapses same-range duplicates and merges identical adjacent cues.
+- **Encoding fallback** — tries UTF-8, falls back to Latin-1 for legacy subtitle files.
 
 Created by Muhammad Hasan Alasady under a [MIT LICENSE](https://github.com/dsc-uob/subtitle/blob/master/LICENCE).
 

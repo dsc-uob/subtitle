@@ -1,3 +1,18 @@
+## 0.2.0
+
+### Performance
+- **VTT and SRT parser rewritten** as a line-based cue-block parser. The file is split on blank lines and only the `-->` timing line is matched with a regex, eliminating the catastrophic backtracking that caused multi-second hangs on large karaoke-style VTT files. ([#21](https://github.com/dsc-uob/subtitle/issues/21))
+- **`multiDurationSearch` is now O(log n + k)** — an upper-bound binary search locates the candidate window, then a backwards walk with a precomputed prefix-max-end array terminates as soon as no further active cue is possible.
+- **Cue deduplication** runs automatically after parsing and sorting. Same-range cues are collapsed to the longest text; contiguous cues with identical text and a gap ≤ 50 ms are merged into one. This keeps karaoke-style files manageable without losing visible content.
+
+### Fixes
+- VTT cue identifiers (named cues such as `intro` or `chapter-1`) are now parsed correctly — cue names no longer bleed into `.data`. ([#20](https://github.com/dsc-uob/subtitle/issues/20))
+- VTT positioning directives (`line:`, `position:`, `align:`, etc.) on the timing line are silently skipped; only the cue text that follows is extracted.
+- Network and file fetching now attempt strict UTF-8 decoding first and fall back to Latin-1 for subtitle files served in legacy encodings. ([#10](https://github.com/dsc-uob/subtitle/issues/10))
+
+### API additions
+- `Subtitle.copyWith({index, data, start, end})` — creates a modified copy of a subtitle cue.
+
 ## 0.1.4
 - Fix: Resolved issues related to new line handling in subtitle parsers.
 - Test: Added comprehensive tests for all subtitle formats. (#18)
